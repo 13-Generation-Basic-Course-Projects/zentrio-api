@@ -1,6 +1,7 @@
 package org.example.zentrio.repository;
 
 import org.apache.ibatis.annotations.*;
+import org.example.zentrio.dto.request.StatusRequest;
 import org.example.zentrio.dto.request.TaskRequest;
 import org.example.zentrio.model.Task;
 
@@ -107,6 +108,12 @@ public interface TaskRepository {
     @ResultMap("taskMapper")
     List<Task> getAllTaskByBoardIdAndTitle(UUID boardId, String title);
 
+    @Select("""
+                UPDATE tasks SET status = #{request.status}, updated_at = now()  WHERE task_id = #{taskId}
+                RETURNING *
+            """)
+    @ResultMap("taskMapper")
+    Task updateTaskStatusById(UUID taskId, @Param("request") StatusRequest statusRequest);
 
 
     @Select("""
@@ -147,6 +154,5 @@ public interface TaskRepository {
                 WHERE board_id = #{boardId}
             """)
     Integer countTasksByBoardId( UUID boardId);
-
 
 }

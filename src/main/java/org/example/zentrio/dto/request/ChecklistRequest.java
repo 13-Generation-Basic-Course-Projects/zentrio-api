@@ -2,6 +2,7 @@ package org.example.zentrio.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,9 +21,11 @@ public class ChecklistRequest {
 //    private Integer checklistOrder;
     @JsonSerialize
     @JsonFormat
+    @FutureOrPresent
     private LocalDateTime startedAt;
     @JsonSerialize
     @JsonFormat
+    @FutureOrPresent
     private LocalDateTime finishedAt;
 //    private UUID taskId;
 }

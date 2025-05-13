@@ -1,9 +1,11 @@
 package org.example.zentrio.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.example.zentrio.dto.request.StatusRequest;
 import org.example.zentrio.dto.request.TaskRequest;
 import org.example.zentrio.dto.response.ApiResponse;
 import org.example.zentrio.enums.RoleName;
+import org.example.zentrio.enums.Status;
 import org.example.zentrio.exception.BadRequestException;
 import org.example.zentrio.exception.NotFoundException;
 import org.example.zentrio.model.*;
@@ -14,7 +16,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,6 +31,7 @@ public class TaskServiceImpl implements TaskService {
     private final MemberRepository memberRepository;
     private final BoardRepository boardRepository;
     private final AuthService authService;
+    private final ChecklistRepository checklistRepository;
 
     public List<UUID> checkExistedGanttBarId( UUID ganttBarId){
 
@@ -94,6 +96,30 @@ public class TaskServiceImpl implements TaskService {
         return boardId;
     }
 
+    @Override
+    public TaskRequest checkDateOfCreateTask(UUID ganttBarId, TaskRequest taskRequest) {
+
+        GanttBar ganttBar = ganttBarService.getGanttBarByGanttBarID(ganttBarId);
+        if (ganttBar == null){
+            throw new NotFoundException("Gantt Bar not found!");
+        }
+
+        LocalDateTime startDateOfGanttBar = ganttBar.getStartAt();
+        LocalDateTime finishDateOfGanttBar = ganttBar.getFinishedAt();
+        if (startDateOfGanttBar == null || finishDateOfGanttBar == null){
+            throw new BadRequestException("Deadline of Gantt Bar not found");
+        }
+
+        if (taskRequest.getStartedAt().isBefore(startDateOfGanttBar)){
+            throw new BadRequestException("Start date of task cannot be the past of start date of gantt bar!");
+        }
+        if (taskRequest.getFinishedAt().isAfter(finishDateOfGanttBar)){
+            throw new BadRequestException("Finish date of task cannot be after of finish date of gantt bar!");
+        }
+
+        return taskRequest;
+    }
+
     public UUID checkExistedTaskByTaskId(UUID taskId){
         Task task = taskRepository.getTaskByTaskId(taskId);
         if (task == null){
@@ -111,13 +137,15 @@ public class TaskServiceImpl implements TaskService {
         return taskId;
     }
 
-
     @Override
     public Task createTask( UUID ganttBarId, TaskRequest taskRequest) {
+
+        checkDateOfCreateTask(ganttBarId, taskRequest);
         List<UUID> existedIds = checkExistedGanttBarId(ganttBarId);
         UUID currentUserId = authService.getCurrentAppUserId();
         UUID boardId = existedIds.get(0);
         boardId = checkExistedBoardByUserId(currentUserId, boardId);
+
         return taskRepository.createTask(boardId, ganttBarId, taskRequest);
     }
 
@@ -173,6 +201,84 @@ public class TaskServiceImpl implements TaskService {
                 .timestamp(LocalDateTime.now())
                 .pagination(new Pagination(page, totalElements, totalPages))
                 .build();
+    }
+
+    @Override
+    public Task updateTaskStatusById(UUID taskId, StatusRequest statusRequest) {
+
+        Task task = getTaskById(taskId);
+        if (task == null){
+            throw new NotFoundException("Task not found!");
+        }
+
+        taskId = task.getTaskId();
+        List<UUID> existedIds = checkExistedGanttBarId(task.getGanttBarId());
+        if (existedIds == null){
+            throw new NotFoundException("Gantt bar not found!");
+        }
+        UUID ganttBarId = existedIds.get(1);
+        if (ganttBarId == null){
+            throw new NotFoundException("Gantt bar not found!");
+        }
+        GanttBar ganttBar = ganttBarService.getGanttBarByGanttBarID(ganttBarId);
+        if (ganttBar == null){
+            throw new NotFoundException("Gantt bar not found!");
+        }
+
+        List<Checklist> allChecklistsById = checklistRepository.getAllChecklistByTaskId(taskId);
+
+        task.setUpdatedAt(LocalDateTime.now());
+        LocalDateTime setUpdatedAtTask = task.getUpdatedAt();
+
+
+            if (setUpdatedAtTask.isBefore(task.getFinishedAt())){
+                Boolean isDone = false;
+                for (Checklist checklist : allChecklistsById) {
+                    if (checklist.getStatus().equals(Status.DONE.toString()) || checklist.getStatus().equals(Status.OVERDUE.toString())){
+                        isDone = true;
+//                        statusRequest.setStatus(Status.DONE);
+//                        taskRepository.updateTaskStatusById(taskId, statusRequest);
+                    }
+
+                    if (checklist.getStatus().equals(Status.PENDING.toString())){
+                        isDone = false;
+                    }
+                }
+                if (isDone.equals(true)){
+                        statusRequest.setStatus(Status.DONE);
+                        taskRepository.updateTaskStatusById(taskId, statusRequest);
+
+                }
+                if (isDone.equals(false)){
+                    statusRequest.setStatus(Status.PENDING);
+                    taskRepository.updateTaskStatusById(taskId, statusRequest);
+                    throw new BadRequestException("Cannot update status! Checklists in this task still 'PENDING'!");
+                }
+            }
+
+            if (setUpdatedAtTask.isAfter(task.getFinishedAt())){
+                Boolean isDone = false;
+                for (Checklist checklist : allChecklistsById) {
+                    if (checklist.getStatus().equals(Status.DONE.toString()) || checklist.getStatus().equals(Status.OVERDUE.toString())){
+                        isDone = true;
+                    }
+
+                    if (checklist.getStatus().equals(Status.PENDING.toString())){
+                        isDone = false;
+                    }
+                }
+                if (isDone.equals(true)){
+                    statusRequest.setStatus(Status.OVERDUE);
+                    taskRepository.updateTaskStatusById(taskId, statusRequest);
+                }
+                if (isDone.equals(false)){
+                    statusRequest.setStatus(Status.PENDING);
+                    taskRepository.updateTaskStatusById(taskId, statusRequest);
+                    throw new BadRequestException("Cannot update status! Checklists in this task still 'PENDING'!");
+                }
+            }
+
+        return task;
     }
 
     @Override

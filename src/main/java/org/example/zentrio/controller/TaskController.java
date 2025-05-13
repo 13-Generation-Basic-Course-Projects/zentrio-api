@@ -6,9 +6,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.example.zentrio.dto.request.StatusRequest;
 import org.example.zentrio.dto.request.TaskRequest;
 import org.example.zentrio.dto.response.ApiResponse;
 import org.example.zentrio.dto.response.DeleteApiResponse;
+import org.example.zentrio.model.Checklist;
 import org.example.zentrio.model.Task;
 import org.example.zentrio.service.TaskService;
 import org.springframework.http.HttpStatus;
@@ -16,7 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -128,7 +129,7 @@ public class TaskController {
     }
 
     @Operation(summary = "Update task description by task id")
-    @PatchMapping("/updateDescription/{task-id}")
+    @PatchMapping("/{task-id}")
     public ResponseEntity<ApiResponse<Task>> updateTaskDescriptionByTaskId(
             @PathVariable("task-id") UUID taskId,
             @RequestBody String description) {
@@ -160,7 +161,22 @@ public class TaskController {
         return ResponseEntity.ok(response);
     }
 
-    
+    @Operation(summary = "Update task status by task id")
+    @PatchMapping("/task-id/{task-id}")
+    public ResponseEntity<ApiResponse<Task>> updateTaskStatusById(
+            @PathVariable("task-id") UUID taskId,
+            @RequestBody StatusRequest statusRequest){
+        ApiResponse<Task> response = ApiResponse.<Task> builder()
+                .success(true)
+                .message("Update task status by id successfully!")
+                .status(HttpStatus.OK)
+                .payload(taskService.updateTaskStatusById(taskId, statusRequest))
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
 
     //From Fanau
 

@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.zentrio.dto.request.ChecklistRequest;
+import org.example.zentrio.dto.request.StatusRequest;
 import org.example.zentrio.dto.response.ApiResponse;
 import org.example.zentrio.dto.response.DeleteApiResponse;
 import org.example.zentrio.model.Checklist;
@@ -110,6 +111,22 @@ public class ChecklistController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Update checklist status by checklist id")
+    @PatchMapping("/checklist-id/{checklist-id}")
+    public ResponseEntity<ApiResponse<Checklist>> updateChecklistStatusById(
+            @PathVariable("checklist-id") UUID checklistId,
+            @RequestBody StatusRequest statusRequest){
+        ApiResponse<Checklist> response = ApiResponse.<Checklist> builder()
+                .success(true)
+                .message("Update checklist status by id successfully!")
+                .status(HttpStatus.OK)
+                .payload(checklistService.updateChecklistStatusById(checklistId, statusRequest))
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
     @Operation(summary = "Delete checklist by checklist id")
     @DeleteMapping("/checklist-id/{checklist-id}")
     public ResponseEntity<DeleteApiResponse<Checklist>> deleteChecklistByChecklist(
@@ -126,6 +143,8 @@ public class ChecklistController {
 
         return ResponseEntity.ok(response);
     }
+
+
 
     @Operation(summary = "Assign members to checklists",description = "Assign members to any checklist")
     @PostMapping("assign-member-checklist")

@@ -2,7 +2,9 @@ package org.example.zentrio.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.example.zentrio.dto.request.ChecklistRequest;
+import org.example.zentrio.dto.request.StatusRequest;
 import org.example.zentrio.enums.RoleName;
+import org.example.zentrio.enums.Status;
 import org.example.zentrio.exception.BadRequestException;
 import org.example.zentrio.exception.NotFoundException;
 import org.example.zentrio.model.Board;
@@ -11,8 +13,10 @@ import org.example.zentrio.model.Task;
 import org.example.zentrio.repository.*;
 import org.example.zentrio.service.AuthService;
 import org.example.zentrio.service.ChecklistService;
+import org.example.zentrio.service.TaskService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -23,6 +27,7 @@ public class ChecklistServiceImpl implements ChecklistService {
 
     private final ChecklistRepository checklistRepository;
     private final TaskRepository taskRepository;
+    private final TaskService taskService;
     private final MemberRepository memberRepository;
     private final AuthService authService;
     private final RoleRepository roleRepository;
@@ -78,25 +83,62 @@ public class ChecklistServiceImpl implements ChecklistService {
 
     }
 
-    public String checkRoleUserById(UUID currentUserId){
+    //Check deadline checklist when create
+    @Override
+    public ChecklistRequest checkDateOfCreateChecklist(UUID taskId, ChecklistRequest checklistRequest) {
 
-        UUID existedMemberId = memberRepository.getRoleIdByUserIdAsAMember(currentUserId);
-        UUID roleIdOfExistedMember = memberRepository.getRoleIdByMemberId(existedMemberId);
+        Task task = taskService.getTaskById(taskId);
+        if (task == null){
+            throw new NotFoundException("Task not found!");
+        }
 
-//        currentUserId = existedMember.getUserId();
+        LocalDateTime startDateOfTask = task.getStartedAt();
+        LocalDateTime finishDateOfTask = task.getFinishedAt();
+        if (startDateOfTask == null || finishDateOfTask == null){
+            throw new NotFoundException("Task deadline cannot found!");
+        }
 
-        return roleRepository.getRoleNameByRoleId(roleIdOfExistedMember);
+        if (checklistRequest.getStartedAt().isBefore(startDateOfTask)){
+            throw new BadRequestException("Start date of checklist cannot be the past of start date of task!");
+        }
+        if (checklistRequest.getFinishedAt().isAfter(finishDateOfTask)){
+            throw new BadRequestException("Finish date of checklist cannot be after of finish date of task!");
+        }
+
+        return checklistRequest;
+    }
+
+    @Override
+    public Checklist updateChecklistStatusById(UUID checklistId, StatusRequest statusRequest) {
+       Checklist checklist = getChecklistChecklistId(checklistId);
+       if (checklist == null){
+           throw new NotFoundException("Checklist not found!");
+       }
+       UUID taskId = checklist.getTaskId();
+       if (taskId == null){
+           throw new NotFoundException("Task id not found!");
+       }
+       checkTaskIdToGetChecklist(taskId);
+       checklist.setUpdatedAt(LocalDateTime.now());
+       LocalDateTime setUpdatedAtChecklist = checklist.getUpdatedAt();
+       if (setUpdatedAtChecklist.isAfter(checklist.getFinishedAt())){
+           checklist.setStatus(Status.OVERDUE.toString());
+           checklistRepository.updateChecklistStatusById(checklist.getChecklistId(), statusRequest);
+       }
+
+       checklist.setStatus(Status.DONE.toString());
+       return checklistRepository.updateChecklistStatusById(checklist.getChecklistId(), statusRequest);
     }
 
     @Override
     public Checklist createChecklist(UUID taskId, ChecklistRequest checklistRequest) {
 
+        checkDateOfCreateChecklist(taskId, checklistRequest);
         UUID currentUserId = authService.getCurrentAppUserId();
         System.out.println("Current user : " + currentUserId);
         taskId = checkExistedTaskId(taskId, currentUserId);
 
         System.out.println("checklist title : " + checklistRequest.getTitle());
-
 
         return checklistRepository.createChecklist(taskId, checklistRequest);
     }
@@ -122,7 +164,12 @@ public class ChecklistServiceImpl implements ChecklistService {
         if (taskId == null){
             throw new NotFoundException("Checklist not found by task id!");
         }
-        checkTaskIdToGetChecklist(taskId);
+
+        UUID currentUserId = authService.getCurrentAppUserId();
+        if (currentUserId == null){
+            throw new NotFoundException("Current User Id not found!");
+        }
+        checkExistedTaskId(taskId, currentUserId);
 
 
         return checklist;
@@ -209,5 +256,7 @@ public class ChecklistServiceImpl implements ChecklistService {
         // Optionally return something meaningful, currently returns null
         return null;
     }
+
+
 
 }

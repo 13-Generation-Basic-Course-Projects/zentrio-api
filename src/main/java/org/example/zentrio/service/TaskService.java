@@ -1,5 +1,6 @@
 package org.example.zentrio.service;
 
+import org.example.zentrio.dto.request.StatusRequest;
 import org.example.zentrio.dto.request.TaskRequest;
 import org.example.zentrio.dto.response.ApiResponse;
 import org.example.zentrio.model.Task;
@@ -26,9 +27,13 @@ public interface TaskService {
 
     UUID checkExistedBoardByUserId(UUID currentUserId, UUID boardId);
 
+    TaskRequest checkDateOfCreateTask(UUID ganttBarId, TaskRequest taskRequest);
+
     Task assignRole(UUID boardId,UUID assignToUserId);
 
     Task assignUserToTaskWithRole(UUID assignedToUserId, UUID taskId);
 
     ApiResponse<List<Task>> getAllTasksByBoardId(UUID boardId, Integer page, Integer size);
+
+    Task updateTaskStatusById(UUID taskId, StatusRequest statusRequest);
 }

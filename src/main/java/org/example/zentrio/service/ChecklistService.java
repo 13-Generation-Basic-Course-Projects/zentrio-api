@@ -1,6 +1,7 @@
 package org.example.zentrio.service;
 
 import org.example.zentrio.dto.request.ChecklistRequest;
+import org.example.zentrio.dto.request.StatusRequest;
 import org.example.zentrio.model.Checklist;
 
 import java.util.HashMap;
@@ -25,4 +26,8 @@ public interface ChecklistService {
     Checklist deleteChecklistByChecklist(UUID checklistId);
 
     Checklist assignMemberToChecklist(UUID assignedByUserId, UUID assignToUserId, UUID checklistId, UUID taskId);
+
+    ChecklistRequest checkDateOfCreateChecklist(UUID taskId, ChecklistRequest checklistRequest);
+
+    Checklist updateChecklistStatusById(UUID checklistId, StatusRequest statusRequest);
 }

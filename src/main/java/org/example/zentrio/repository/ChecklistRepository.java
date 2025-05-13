@@ -2,6 +2,7 @@ package org.example.zentrio.repository;
 
 import org.apache.ibatis.annotations.*;
 import org.example.zentrio.dto.request.ChecklistRequest;
+import org.example.zentrio.dto.request.StatusRequest;
 import org.example.zentrio.model.Checklist;
 import org.example.zentrio.model.Task;
 
@@ -66,8 +67,6 @@ public interface ChecklistRepository {
     @ResultMap("checklistMapper")
     Checklist deleteChecklistByChecklist( UUID checklistId);
 
-
-
     @Select("""
                 SELECT COUNT(*) FROM checklist_assignments
                 WHERE checklist_id = #{checklistId}
@@ -75,13 +74,17 @@ public interface ChecklistRepository {
             """)
     boolean isExistByUserIdAndTaskId(UUID checklistId,UUID memberId);
 
-
-
     // get checklist by checklist id
     @Select("""
         SELECT * FROM checklists WHERE checklist_id = #{checklistId}
     """)
+    @ResultMap("checklistMapper")
     Checklist getChecklistById(UUID checklistId);
 
-
+    @Select("""
+        UPDATE checklists SET status = #{request.status}, updated_at = now() WHERE checklist_id = #{checklistId}
+        RETURNING *
+    """)
+    @ResultMap("checklistMapper")
+    Checklist updateChecklistStatusById(UUID checklistId, @Param("request") StatusRequest statusRequest);
 }
