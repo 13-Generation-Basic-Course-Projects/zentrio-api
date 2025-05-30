@@ -18,6 +18,7 @@ public interface ChecklistRepository {
     @Results(id = "checklistMapper", value = {
             @Result(property = "checklistId", column = "checklist_id"),
             @Result(property = "title", column = "title"),
+            @Result(property = "description", column = "description"),
             @Result(property = "status", column = "status"),
             @Result(property = "cover", column = "cover"),
             @Result(property = "createdAt", column = "created_at"),
@@ -31,8 +32,8 @@ public interface ChecklistRepository {
             @Result(property = "createdBy", column = "created_by")
     })
     @Select("""
-                INSERT INTO checklists(title, started_at, finished_at, task_id, created_by)
-                VALUES (#{checklistRequest.title}, #{checklistRequest.startedAt}, #{checklistRequest.finishedAt},
+                INSERT INTO checklists(title, description, started_at, finished_at, task_id, created_by)
+                VALUES (#{checklistRequest.title}, #{checklistRequest.description}, #{checklistRequest.startedAt}, #{checklistRequest.finishedAt},
                         #{taskId},
                         #{createdBy})
                 RETURNING *

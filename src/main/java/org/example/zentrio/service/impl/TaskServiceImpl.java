@@ -273,20 +273,26 @@ public class TaskServiceImpl implements TaskService {
         Boolean userExistInBoard= boardRepository.getExistUserInBoard(assigneeId,task.getBoardId());
         UUID leaderId = null;
         if (userExistInBoard){
-              leaderId = taskRepository.getLeaderIdByUserIdAndBoardId(assigneeId, task.getBoardId());
-            System.out.println("leaderId: " + leaderId);
-             if (leaderId == null) {
-//                 throw new ForbiddenException("This assignee with " + assigneeId + " not a leader of this board");
-                 UUID roleId = roleRepository.getRoleIdByRoleName(RoleName.ROLE_LEADER.name());
-                 boardRepository.insertMember(assigneeId,task.getBoardId(),roleId);
-                 leaderId = taskRepository.getLeaderIdByUserIdAndBoardId(assigneeId, task.getBoardId());
-                 System.out.println("leaderId after assign: " + leaderId);
-             }
-         }else {
+            String roleManager = roleRepository.getRoleNameByBoardIdAndUserId(task.getBoardId(), assigneeId);
+            if (RoleName.ROLE_MANAGER.toString().equals(roleManager)) {
+                throw new BadRequestException("Cannot assign Project Manager!");
+            }
+
+            if (roleManager == null) {
+                leaderId = taskRepository.getLeaderIdByUserIdAndBoardId(assigneeId, task.getBoardId());
+                System.out.println("leaderId: " + leaderId);
+
+                if (leaderId == null) {
+                    UUID roleId = roleRepository.getRoleIdByRoleName(RoleName.ROLE_LEADER.name());
+                    boardRepository.insertMember(assigneeId, task.getBoardId(), roleId);
+                }
+            }
+
+
+        }else {
             throw new ForbiddenException("This user is not member in this board");
         }
-
-
+        System.out.println("Leader : "+leaderId);
         taskRepository.insertTaskAssignment(taskId, assignerMemberId, leaderId);
     }
 
