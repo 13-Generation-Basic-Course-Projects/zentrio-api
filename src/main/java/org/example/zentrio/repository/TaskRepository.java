@@ -2,9 +2,7 @@ package org.example.zentrio.repository;
 
 import org.apache.ibatis.annotations.*;
 import org.example.zentrio.dto.request.TaskRequest;
-import org.example.zentrio.dto.response.MemberResponse;
 import org.example.zentrio.dto.response.MemberResponseData;
-import org.example.zentrio.enums.Stage;
 import org.example.zentrio.model.Task;
 
 import java.time.LocalDateTime;
@@ -210,4 +208,21 @@ public interface TaskRepository {
               )
             """)
     boolean isTaskAssigned(UUID taskId);
+
+
+    @Select("""
+        
+            SELECT m.member_id
+        FROM members m
+        INNER JOIN roles r ON r.role_id = m.role_id
+        INNER JOIN task_assignments tk ON tk.assigned_to = m.member_id OR tk.assigned_by = m.member_id
+        WHERE m.user_id = #{userId}
+          AND m.board_id = #{boardId}
+          AND tk.task_id = #{taskId}
+        LIMIT 1;
+        
+        """)
+
+    UUID getPmOrTeamleadId(UUID boardId, UUID userId, UUID taskId);
+
 }

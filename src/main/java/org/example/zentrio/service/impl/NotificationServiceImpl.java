@@ -64,7 +64,7 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setIsRead(false);
         notification.setCreatedAt(LocalDateTime.now());
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
-        notification.setUserId(userId);
+     //   notification.setUserId(userId);
 //        notificationRepository.insertNotification(notification);
     }
 
@@ -105,7 +105,7 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setType("IN APP");
         notification.setIsRead(false);
         notification.setCreatedAt(LocalDateTime.now());
-        notification.setUserId(userId);
+       // notification.setUserId(userId);
         notification.setTaskId(taskId);
         notificationRepository.insertNotification(notification);
         System.out.println("notification: " + notification);

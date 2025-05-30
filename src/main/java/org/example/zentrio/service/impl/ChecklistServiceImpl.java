@@ -5,7 +5,6 @@ import io.minio.errors.ErrorResponseException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.example.zentrio.dto.request.ChecklistRequest;
-import org.example.zentrio.dto.response.ApiResponse;
 import org.example.zentrio.enums.ChecklistStatus;
 import org.example.zentrio.enums.ImageExtension;
 import org.example.zentrio.enums.RoleName;
@@ -17,7 +16,6 @@ import org.example.zentrio.repository.*;
 import org.example.zentrio.service.ChecklistService;
 import org.example.zentrio.service.TaskService;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -39,7 +37,7 @@ public class ChecklistServiceImpl implements ChecklistService {
     private final RoleRepository roleRepository;
     private final BoardRepository boardRepository;
     private final MinioClient minioClient;
-
+    private final MemberRepository memberRepository;
     @Value("${minio.bucket.name}")
     private String bucketName;
 
@@ -196,6 +194,7 @@ public class ChecklistServiceImpl implements ChecklistService {
 
     @Override
     public void assignMemberToChecklist(UUID checklistId, UUID taskId, UUID assignedBy, UUID assignedTo) {
+        UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         validateChecklistIdAndTaskId(checklistId, taskId);
         Task task = taskService.getTaskById(taskId);
 
@@ -203,25 +202,37 @@ public class ChecklistServiceImpl implements ChecklistService {
 
         // can replace taskRepository to memberRepository
 
-        UUID assignerId = taskRepository.getMemberIdByUserIdAndTaskId(assignedBy, taskId);
-        System.out.println("assignerId: " + assignerId);
+        UUID assignerId = taskRepository.getPmOrTeamleadId(task.getBoardId(),assignedBy,task.getTaskId());
+        UUID assignto=null;
+        String role= memberRepository.getRoleInTask(task.getBoardId(),assignedBy,task.getTaskId());
+        System.out.println("role: " + role);
+        if (role == null) {
+            throw new ForbiddenException("You do not have permission to create checklist.");
+        }
+        if (role.equals(RoleName.ROLE_MANAGER.toString()) ||  role.equals(RoleName.ROLE_LEADER.toString())) {
+            Boolean userExistInBoard= boardRepository.getExistUserInBoard(assignedTo,task.getBoardId());
+            if (userExistInBoard) {
+                 assignto = checklistRepository.findMemberIdByBoardIdAndUserId(task.getBoardId(), assignedTo);
+                System.out.println("assignto1: " + assignto);
+                if (assignto == null) {
+                    UUID roleId = roleRepository.getRoleIdByRoleName(RoleName.ROLE_MEMBER.toString());
+                    boardRepository.insertMember(assignedTo,task.getBoardId(),roleId);
+                    assignto = checklistRepository.findMemberIdByBoardIdAndUserId(task.getBoardId(), assignedTo);
+                    System.out.println("assignto2: " + assignto);
+                }
 
-        String roleName = roleRepository.getRoleLeaderNameByBoardIdAndUserId(task.getBoardId(), assignedBy);
-        if (roleName == null || !roleName.equals(RoleName.ROLE_LEADER.toString())) {
-            throw new ForbiddenException("User with id " + assignedBy + " are not the leader of this task can't be assigned to this checklist");
+                if (checklistRepository.checklistIsAssigned(checklistId, assignto)) {
+                    throw new BadRequestException("Member with ID " + assignto + " is already assigned to this checklist");
+                }
+            }else {
+                throw new ForbiddenException("Assign to user does not have in this board");
+            }
+
+            checklistRepository.insertToChecklistAssignment(checklistId, assignerId, assignto);
         }
 
         // can replace checklistRepository to memberRepository
-        UUID assigneeId = checklistRepository.findMemberIdByBoardIdAndUserId(task.getBoardId(), assignedTo);
-        System.out.println("assigneeId: " + assigneeId);
-        if (assigneeId == null) {
-            throw new NotFoundException("User ID " + assignedTo + " are not a member of this board can't be assigned to this checklist");
-        }
 
-        if (checklistRepository.checklistIsAssigned(checklistId, assigneeId)) {
-            throw new BadRequestException("Member with ID " + assigneeId + " is already assigned to this checklist");
-        }
-        checklistRepository.insertToChecklistAssignment(checklistId, assignerId, assigneeId);
     }
 
 
