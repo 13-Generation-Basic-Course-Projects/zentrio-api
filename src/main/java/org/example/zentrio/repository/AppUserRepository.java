@@ -36,7 +36,8 @@ public interface AppUserRepository {
     @Select("""
         SELECT * FROM users WHERE user_id = #{userId}
     """)
-    AppUser     getUserById( UUID userId);
+    @ResultMap("UserMapper")
+    AppUser getUserById( UUID userId);
 
     @Select("""
         UPDATE users SET is_verified = true

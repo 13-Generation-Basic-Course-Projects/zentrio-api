@@ -5,5 +5,4 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import java.util.UUID;
 
 public interface AppUserService extends UserDetailsService {
-    UUID getCurrentUserId();
 }

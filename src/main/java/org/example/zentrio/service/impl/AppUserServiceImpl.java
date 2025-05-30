@@ -23,12 +23,5 @@ public class AppUserServiceImpl implements AppUserService {
         return appUserRepository.getUserByEmail(email);
     }
 
-    @Override
-    public UUID getCurrentUserId() {
-        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        AppUser currentUser = appUserRepository.getUserByEmail(authentication.getName());
-        UUID currentUserId = appUserRepository.getCurrentUserId(currentUser.getEmail());
-        System.out.println("User Id : " + currentUserId);
-        return currentUserId;
-    }
+
 }

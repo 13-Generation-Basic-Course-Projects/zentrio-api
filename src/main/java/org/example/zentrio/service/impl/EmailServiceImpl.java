@@ -58,6 +58,11 @@ public class EmailServiceImpl implements EmailService {
         if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
             throw new BadRequestException("Invalid email address");
         }
+
+        if (role == null) {
+            throw new BadRequestException("Role required can't be null or empty");
+        }
+
         try {
             // Prepare the email template context with dynamic values
             Context context = new Context();

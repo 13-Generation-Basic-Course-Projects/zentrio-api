@@ -39,6 +39,7 @@ public class ChecklistServiceImpl implements ChecklistService {
     private final RoleRepository roleRepository;
     private final BoardRepository boardRepository;
     private final MinioClient minioClient;
+    private final MemberRepository memberRepository;
 
     @Value("${minio.bucket.name}")
     private String bucketName;
@@ -202,25 +203,35 @@ public class ChecklistServiceImpl implements ChecklistService {
         System.out.println("assignBy " + assignedBy);
 
         // can replace taskRepository to memberRepository
-        UUID assignerId = taskRepository.getMemberIdByUserIdAndTaskId(assignedBy, taskId);
-        System.out.println("assignerId: " + assignerId);
 
-        String roleName = roleRepository.getRoleLeaderNameByBoardIdAndUserId(task.getBoardId(), assignedBy);
-        if (roleName == null || !roleName.equals(RoleName.ROLE_LEADER.toString())) {
-            throw new ForbiddenException("User with id " + assignedTo + " are not the leader of this task can't be assigned to this checklist");
+        UUID assignerId = taskRepository.getManagerOrLeader(task.getBoardId(),assignedBy,task.getTaskId());
+        UUID assignTo=null;
+        String role= memberRepository.getRoleInTask(task.getBoardId(),assignedBy,task.getTaskId());
+        System.out.println("role: " + role);
+        if (role == null) {
+            throw new ForbiddenException("You do not have permission to create checklist.");
         }
+        if (role.equals(RoleName.ROLE_MANAGER.toString()) ||  role.equals(RoleName.ROLE_LEADER.toString())) {
+            Boolean userExistInBoard = boardRepository.getExistUserInBoard(assignedTo, task.getBoardId());
+            if (userExistInBoard) {
+                assignTo = checklistRepository.findMemberIdByBoardIdAndUserId(task.getBoardId(), assignedTo);
+//                System.out.println("assignto1: " + assignto);
+                if (assignTo == null) {
+                    UUID roleId = roleRepository.getRoleIdByRoleName(RoleName.ROLE_MEMBER.toString());
+                    boardRepository.insertMember(assignedTo, task.getBoardId(), roleId);
+                    assignTo = checklistRepository.findMemberIdByBoardIdAndUserId(task.getBoardId(), assignedTo);
+//                    System.out.println("assignto2: " + assignto);
+                }
 
-        // can replace checklistRepository to memberRepository
-        UUID assigneeId = checklistRepository.findMemberIdByBoardIdAndUserId(task.getBoardId(), assignedTo);
-        System.out.println("assigneeId: " + assigneeId);
-        if (assigneeId == null) {
-            throw new NotFoundException("User ID " + assignedTo + " are not a member of this board can't be assigned to this checklist");
-        }
+                if (checklistRepository.checklistIsAssigned(checklistId, assignTo)) {
+                    throw new BadRequestException("Member with ID " + assignTo + " is already assigned to this checklist");
+                }
+            } else {
+                throw new ForbiddenException("Assign to user does not have in this board");
+            }
 
-        if (checklistRepository.checklistIsAssigned(checklistId, assigneeId)) {
-            throw new BadRequestException("Member with ID " + assigneeId + " is already assigned to this checklist");
+            checklistRepository.insertToChecklistAssignment(checklistId, assignerId, assignTo);
         }
-        checklistRepository.insertToChecklistAssignment(checklistId, assignerId, assigneeId);
     }
 
 

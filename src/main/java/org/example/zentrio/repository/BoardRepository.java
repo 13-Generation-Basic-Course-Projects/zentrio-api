@@ -175,4 +175,13 @@ public interface BoardRepository {
     @ResultMap("boardMapper")
     HashSet<Board> getAllBoards();
 
+    @Select("""
+        
+            SELECT EXISTS(
+            SELECT  1 FROM  members m
+                      where m.user_id= #{assigneeId}
+                      AND m.board_id= #{boardId}
+        )
+        """)
+    Boolean getExistUserInBoard(UUID assigneeId, UUID boardId);
 }

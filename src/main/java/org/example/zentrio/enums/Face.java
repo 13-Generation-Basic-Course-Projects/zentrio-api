@@ -9,7 +9,4 @@ public enum Face {
     IMPLEMENTATION,
     TESTING_AND_REVIEW,
     DEPLOYMENT_AND_MAINTENANCE,
-
-
-
 }

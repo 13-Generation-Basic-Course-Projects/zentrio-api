@@ -18,6 +18,7 @@ public class Notification {
     private Boolean isRead;
     private LocalDateTime createdAt;
     private UUID taskId;
-    private UUID userId;
+    private UUID senderId;
+    private UUID receiverId;
 
 }

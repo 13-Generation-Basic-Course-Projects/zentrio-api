@@ -213,7 +213,8 @@ CREATE TABLE notifications
     is_read         BOOLEAN          DEFAULT FALSE,
     created_at      TIMESTAMP        DEFAULT CURRENT_TIMESTAMP,
     task_assign_id  UUID REFERENCES task_assignments (task_assign_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    user_id         UUID REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE
+    sender_id       UUID REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    receiver_id     UUID REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- Create the reports table
@@ -259,3 +260,98 @@ CREATE TRIGGER set_version_per_board
     ON reports
     FOR EACH ROW
 EXECUTE FUNCTION override_version_per_board();
+
+
+---task_order
+CREATE OR REPLACE FUNCTION set_task_order_per_board()
+    RETURNS TRIGGER AS
+$$
+DECLARE
+    max_order INTEGER;
+BEGIN
+    SELECT COALESCE(MAX(task_order), 0)
+    INTO max_order
+    FROM tasks
+    WHERE board_id = NEW.board_id;
+
+    NEW.task_order := max_order + 1;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_set_task_order ON tasks;
+
+CREATE TRIGGER trigger_set_task_order
+    BEFORE INSERT
+    ON tasks
+    FOR EACH ROW
+EXECUTE FUNCTION set_task_order_per_board();
+CREATE OR REPLACE FUNCTION reorder_task_order_after_delete()
+    RETURNS TRIGGER AS
+$$
+BEGIN
+    -- Shift down all tasks in the same board with higher order
+    UPDATE tasks
+    SET task_order = task_order - 1
+    WHERE board_id = OLD.board_id
+      AND task_order > OLD.task_order;
+
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_reorder_after_task_delete ON tasks;
+
+CREATE TRIGGER trigger_reorder_after_task_delete
+    AFTER DELETE
+    ON tasks
+    FOR EACH ROW
+EXECUTE FUNCTION reorder_task_order_after_delete();
+
+
+
+--- trigger for checklist_order
+CREATE OR REPLACE FUNCTION set_checklist_order_per_task()
+    RETURNS TRIGGER AS
+$$
+DECLARE
+    max_order INTEGER;
+BEGIN
+    SELECT COALESCE(MAX(checklist_order), 0)
+    INTO max_order
+    FROM checklists
+    WHERE task_id = NEW.task_id;
+
+    NEW.checklist_order := max_order + 1;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trigger_set_checklist_order ON checklists;
+
+CREATE TRIGGER trigger_set_checklist_order
+    BEFORE INSERT
+    ON checklists
+    FOR EACH ROW
+EXECUTE FUNCTION set_checklist_order_per_task();
+
+CREATE OR REPLACE FUNCTION reorder_checklist_order_after_delete()
+    RETURNS TRIGGER AS
+$$
+BEGIN
+    UPDATE checklists
+    SET checklist_order = checklist_order - 1
+    WHERE task_id = OLD.task_id
+      AND checklist_order > OLD.checklist_order;
+
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trigger_reorder_checklist_after_delete ON checklists;
+
+CREATE TRIGGER trigger_reorder_checklist_after_delete
+    AFTER DELETE
+    ON checklists
+    FOR EACH ROW
+EXECUTE FUNCTION reorder_checklist_order_after_delete();

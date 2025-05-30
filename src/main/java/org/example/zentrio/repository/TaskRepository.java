@@ -202,12 +202,26 @@ public interface TaskRepository {
     UUID getBoardIdByTaskId(UUID taskId);
 
 
+
     @Select("""
-            SELECT EXISTS (
-            SELECT 1
-             FROM task_assignments tk
-            WHERE tk.task_id = #{taskId}
-              )
-            """)
-    boolean isTaskAssigned(UUID taskId);
+        SELECT t.* FROM task_assignments
+        INNER JOIN tasks t ON task_assignments.task_id = t.task_id
+        WHERE task_assign_id = #{taskAssignId}
+    """)
+    @ResultMap("taskMapper")
+    Task getTaskByAssignId(UUID taskAssignId);
+
+    @Select("""
+            SELECT m.member_id
+        FROM members m
+        INNER JOIN roles r ON r.role_id = m.role_id
+        INNER JOIN task_assignments tk ON tk.assigned_to = m.member_id OR tk.assigned_by = m.member_id
+        WHERE m.user_id = #{userId}
+          AND m.board_id = #{boardId}
+          AND tk.task_id = #{taskId}
+        LIMIT 1;
+        
+        """)
+    UUID getManagerOrLeader(UUID boardId, UUID userId, UUID taskId);
+
 }

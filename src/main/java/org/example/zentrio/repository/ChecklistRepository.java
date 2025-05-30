@@ -80,9 +80,10 @@ public interface ChecklistRepository {
 
 
     @Select("""
-                SELECT m.member_id FROM members m
-                WHERE m.board_id = #{boardId}
-                AND m.user_id = #{assignedTo}
+             SELECT m.member_id FROM members m
+            INNER JOIN  roles r on r.role_id=m.role_id
+             WHERE m.board_id = #{boardId}
+               AND m.user_id = #{assignedTo} AND r.role_name= 'ROLE_MEMBER'
             """)
     UUID findMemberIdByBoardIdAndUserId(UUID boardId, UUID assignedTo);
 
@@ -156,5 +157,8 @@ public interface ChecklistRepository {
             @Result(property = "userName", column = "name"),
     })
     List<MemberResponseData> getMembersByChecklistId(UUID checklistId);
+
+
+
 
 }

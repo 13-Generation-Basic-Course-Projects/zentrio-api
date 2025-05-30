@@ -53,8 +53,9 @@ public class FeedbackServiceImpl implements FeedbackService {
         if (task==null) {
             throw new NotFoundException("Task not found");
         }
+        System.out.println("task:"+task.getStage());
         if ( task.getStage() == null || !task.getStage().equals(Stage.COMPLETED.name())){
-            throw new BadRequestException("Task is not completed");}
+        throw new BadRequestException("Task is not completed");}
 
         UUID taskId=task.getTaskId();
         userRole(task.getBoardId());

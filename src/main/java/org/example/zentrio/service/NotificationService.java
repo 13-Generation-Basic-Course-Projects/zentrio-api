@@ -9,7 +9,7 @@ import java.util.UUID;
 public interface NotificationService {
     void sendMessageToAllUsers(String message) throws JsonProcessingException;
 
-    void sendMessageToUser(String userId, UUID taskId, String message) throws JsonProcessingException;
+    void sendMessageToUser(String senderId, String receiverId, UUID taskId, String message) throws JsonProcessingException;
 
     HashSet<Notification> getNotificationsForUser(UUID userId);
 }
