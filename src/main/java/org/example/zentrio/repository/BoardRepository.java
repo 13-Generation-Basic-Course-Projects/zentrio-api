@@ -259,12 +259,13 @@ public interface BoardRepository {
 
     @Select("""
              
-                   SELECT u.profile_image AS image , u.username AS name, u.user_id FROM users u
+                   SELECT u.profile_image AS image , u.username AS name, u.user_id, u.gender FROM users u
                         inner join workspaces wk on u.user_id = wk.created_by
                 WHERE wk.workspace_id= #{workspaceId}
         """)
     @Results(id = "userWorkspaceMapper", value = {
             @Result(property = "userId", column = "user_id"),
+            @Result(property = "gender", column = "gender"),
             @Result(property = "imageUrl", column = "image"),
             @Result(property = "username", column = "name"),
     })

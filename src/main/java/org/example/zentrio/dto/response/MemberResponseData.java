@@ -13,6 +13,7 @@ import java.util.UUID;
 @Builder
 public class MemberResponseData {
     private UUID userId;
+    private String gender;
     private String imageUrl;
     private String username;
 

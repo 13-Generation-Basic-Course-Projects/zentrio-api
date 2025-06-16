@@ -160,28 +160,14 @@
                         </tr>
                         </thead>
                         <tbody style="background-color: white;">
-                        <tr style="border-bottom: 1px solid black; height: 32px;">
-                            <td style="width: 143px; border-right: 1px solid black; padding-left: 27px;">To Do</td>
-                            <td style="width: 143px; border-right: 1px solid black; padding-left: 27px;">10 tasks</td>
-                            <td style="width: 143px; padding-left: 27px;">10 checklists</td>
-                        </tr>
-                        <tr style="border-bottom: 1px solid black; height: 32px;">
-                            <td style="width: 143px; border-right: 1px solid black; padding-left: 27px;">Progress</td>
-                            <td style="width: 143px; border-right: 1px solid black; padding-left: 27px;">8 tasks</td>
-                            <td style="width: 143px; padding-left: 27px;">5 checklists</td>
-                        </tr>
-                        <tr style="border-bottom: 1px solid black; height: 32px;">
-                            <td style="width: 143px; border-right: 1px solid black; padding-left: 27px;">Under Review</td>
-                            <td style="width: 143px; border-right: 1px solid black; padding-left: 27px;">5 tasks</td>
-                            <td style="width: 143px; padding-left: 27px;">7 checklists</td>
-                        </tr>
-                        <tr style="border-bottom: 1px solid black; height: 32px;">
-                            <td style="width: 143px; border-right: 1px solid black; padding-left: 27px;">Completed</td>
-                            <td style="width: 143px; border-right: 1px solid black; padding-left: 27px;">3 tasks</td>
-                            <td style="width: 143px; padding-left: 27px;">6 checklists</td>
+                        <tr th:each="summary : ${stageSummaries}" style="border-bottom: 1px solid black; height: 32px;">
+                            <td style="width: 143px; border-right: 1px solid black; padding-left: 27px;" th:text="${summary.stage}">Stage</td>
+                            <td style="width: 143px; border-right: 1px solid black; padding-left: 27px;" th:text="${summary.taskCount + ' tasks'}">0 tasks</td>
+                            <td style="width: 143px; padding-left: 27px;" th:text="${summary.checklistCount + ' checklists'}">0 checklists</td>
                         </tr>
                         </tbody>
                     </table>
+
                 </div>
             </div>
         </div>
@@ -189,7 +175,50 @@
         <p style="text-align: center; height: 4.5%; font-size: 12px;">page 1</p>
     </div>
 
+
     <!-- Page 2 -->
+    <div style="width: 595px; height: 842px; background-color: white; display: flex; flex-direction: column; justify-content: space-between;">
+        <p style="width: 199px; background-color: #59BAD5; height: 40px; border-top-right-radius: 12px; border-bottom-left-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 24px; color: white;">
+            <span style="font-weight: bold;">Reports</span>
+        </p>
+
+        <div style="width: 100%; height: 100%; display: flex; flex-direction: column; padding-top: 10%;">
+            <div style="width: 100%; display: flex; justify-content: center;">
+                <div style="height: 100%; display: flex; flex-direction: column; width: 85%;">
+                    <p>
+                        III.&nbsp;&nbsp;In Progress Information
+                    </p>
+                    <div>
+                        <div>
+                            <div style="padding-top: 5%;">
+                                <div style="border: 1px solid black; border-radius: 5px;">
+                                    <table style="width: 100%; font-size: 12px;"
+                                           th:each="group : ${groupedTasks}" th:if="${group.stage == 'IN_PROGRESS'}">
+                                        <thead style="color: white; background-color: #59BAD5;">
+                                        <tr style="height: 26px;">
+                                            <td style="padding-left: 27px; border-right: 1px solid black;">Task Title</td>
+                                            <td style="padding-left: 27px; border-right: 1px solid black;">Lead</td>
+                                            <td style="padding-left: 27px;">Subtask Count</td>
+                                        </tr>
+                                        </thead>
+                                        <tbody style="background-color: white;">
+                                        <tr th:each="task : ${group.tasks}" style="height: 32px; border-top: 1px solid black;">
+                                            <td style="padding-left: 27px; border-right: 1px solid black;" th:text="${task.title}">Task Title</td>
+                                            <td style="padding-left: 27px; border-right: 1px solid black;" th:text="${task.teamLeader?.username}">Lead</td>
+                                            <td style="padding-left: 27px;" th:text="${#lists.size(task.allChecklists)}">0</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 3 -->
     <div style="width: 595px; height: 842px; background-color: white; display: flex; flex-direction: column; justify-content: space-between;">
         <p style="width: 199px; background-color: #59BAD5; height: 40px; border-top-right-radius: 12px; border-bottom-left-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 24px; color: white;">
             <span style="font-weight: bold;">Reports</span>
@@ -205,44 +234,20 @@
                         <div>
                             <div style="padding-top: 5%;">
                                 <div style="border: 1px solid black; border-radius: 5px;">
-                                    <table style="width: 100%; font-size: 12px;">
+                                    <table style="width: 100%; font-size: 12px;"
+                                           th:each="group : ${groupedTasks}" th:if="${group.stage == 'TO DO'}"}>
                                         <thead style="color: white; background-color: #59BAD5;">
                                         <tr style="height: 26px;">
                                             <td style="padding-left: 27px; border-right: 1px solid black;">Task Title</td>
                                             <td style="padding-left: 27px; border-right: 1px solid black;">Lead</td>
-                                            <td style="padding-left: 27px;">
-                                                Subtask Count
-                                            </td>
+                                            <td style="padding-left: 27px;">Subtask Count</td>
                                         </tr>
                                         </thead>
                                         <tbody style="background-color: white;">
-                                        <tr style="height: 32px; border-top: 1px solid black;">
-                                            <td style="padding-left: 27px; border-right: 1px solid black;">Setup project repo</td>
-                                            <td style="padding-left: 27px; border-right: 1px solid black;">
-                                                Alice
-                                            </td>
-                                            <td style="padding-left: 27px;">1</td>
-                                        </tr>
-                                        <tr style="height: 32px; border-top: 1px solid black;">
-                                            <td style="padding-left: 27px; border-right: 1px solid black;">Design UI</td>
-                                            <td style="padding-left: 27px; border-right: 1px solid black;">
-                                                Bob
-                                            </td>
-                                            <td style="padding-left: 27px;">2</td>
-                                        </tr>
-                                        <tr style="height: 32px; border-top: 1px solid black;">
-                                            <td style="padding-left: 27px; border-right: 1px solid black;">API Development</td>
-                                            <td style="padding-left: 27px; border-right: 1px solid black;">
-                                                Charlie
-                                            </td>
-                                            <td style="padding-left: 27px;">1</td>
-                                        </tr>
-                                        <tr style="height: 32px; border-top: 1px solid black;">
-                                            <td style="padding-left: 27px; border-right: 1px solid black;">Requirement gathering</td>
-                                            <td style="padding-left: 27px; border-right: 1px solid black;">
-                                                David
-                                            </td>
-                                            <td style="padding-left: 27px;">1</td>
+                                        <tr th:each="task : ${group.tasks}" style="height: 32px; border-top: 1px solid black;">
+                                            <td style="padding-left: 27px; border-right: 1px solid black;" th:text="${task.title}">Task Title</td>
+                                            <td style="padding-left: 27px; border-right: 1px solid black;" th:text="${task.teamLeader?.name}">Lead</td>
+                                            <td style="padding-left: 27px;" th:text="${#lists.size(task.allChecklists)}">0</td>
                                         </tr>
                                         </tbody>
                                     </table>
@@ -252,87 +257,13 @@
                     </div>
                 </div>
             </div>
-
-            <div style="width: 100%; padding: 5% 0; display: flex; justify-content: center;">
-                <div style="height: 100%; display: flex; flex-direction: column; width: 85%;">
-                    <p>
-                        IV.&nbsp;&nbsp;Under Review information
-                    </p>
-                    <div>
-                        <div style="padding-top: 5%;">
-                            <div style="border: 1px solid black; border-radius: 5px;">
-                                <table style="width: 100%; font-size: 12px;">
-                                    <thead style="color: white; background-color: #59BAD5;">
-                                    <tr style="height: 26px;">
-                                        <td style="padding-left: 27px; border-right: 1px solid black;">
-                                            Task Title
-                                        </td>
-                                        <td style="padding-left: 27px; border-right: 1px solid black;">Lead</td>
-                                        <td style="padding-left: 27px;">
-                                            Subtask Count
-                                        </td>
-                                    </tr>
-                                    </thead>
-                                    <tbody style="background-color: white;">
-                                    <tr style="height: 32px; border-top: 1px solid black;">
-                                        <td style="padding-left: 27px; border-right: 1px solid black;">Setup CI/CD</td>
-                                        <td style="padding-left: 27px; border-right: 1px solid black;">Bob</td>
-                                        <td style="padding-left: 27px;">2</td>
-                                    </tr>
-                                    <tr style="height: 32px; border-top: 1px solid black;">
-                                        <td style="padding-left: 27px; border-right: 1px solid black;">Frontend Dev</td>
-                                        <td style="padding-left: 27px; border-right: 1px solid black;">Alice</td>
-                                        <td style="padding-left: 27px;">1</td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div style="width: 100%; display: flex; justify-content: center;">
-                <div style="height: 100%; display: flex; flex-direction: column; width: 85%;">
-                    <p>
-                        V.&nbsp;&nbsp;Progress information
-                    </p>
-                    <div>
-                        <div style="padding-top: 5%;">
-                            <div style="border: 1px solid black; border-radius: 5px;">
-                                <table style="width: 100%; font-size: 12px;">
-                                    <thead style="color: white; background-color: #59BAD5;">
-                                    <tr style="height: 26px;">
-                                        <td style="padding-left: 27px; border-right: 1px solid black;">
-                                            Task Title
-                                        </td>
-                                        <td style="padding-left: 27px; border-right: 1px solid black;">Lead</td>
-                                        <td style="padding-left: 27px;">
-                                            Subtask Count
-                                        </td>
-                                    </tr>
-                                    </thead>
-                                    <tbody style="background-color: white;">
-                                    <tr style="height: 32px; border-top: 1px solid black;">
-                                        <td style="padding-left: 27px; border-right: 1px solid black;">QA Testing</td>
-                                        <td style="padding-left: 27px; border-right: 1px solid black;">Charlie</td>
-                                        <td style="padding-left: 27px;">2</td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
-
-        <p style="text-align: center; height: 4.5%; font-size: 12px;">page 2</p>
     </div>
 
-    <!-- Page 3 -->
-    <div style="width: 595px; height: 842px; background-color: white; display: flex; flex-direction: column; justify-content: space-between;">
-        <p style="background-color: #59BAD5; width: 199px; height: 40px; border-top-right-radius: 12px; border-bottom-left-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 24px; color: white;">
+    <!--Done -->
+    <div style="width: 595px; height: 842px; background-color: white; display: flex; flex-direction: column; justify-content: space-between;"
+         th:each="group : ${groupedTasks}" th:if="${group.stage == 'COMPLETED'}">
+        <p style="width: 199px; background-color: #59BAD5; height: 40px; border-top-right-radius: 12px; border-bottom-left-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 24px; color: white;">
             <span style="font-weight: bold;">Reports</span>
         </p>
 
@@ -340,7 +271,7 @@
             <div style="width: 100%; display: flex; justify-content: center;">
                 <div style="height: 100%; display: flex; flex-direction: column; width: 85%;">
                     <p>
-                        VI.&nbsp;&nbsp;Stage : Done
+                        III.&nbsp;&nbsp;Done Information
                     </p>
                     <div>
                         <div>
@@ -349,25 +280,16 @@
                                     <table style="width: 100%; font-size: 12px;">
                                         <thead style="color: white; background-color: #59BAD5;">
                                         <tr style="height: 26px;">
-                                            <td style="padding-left: 27px; border-right: 1px solid black;">
-                                                Task Title
-                                            </td>
+                                            <td style="padding-left: 27px; border-right: 1px solid black;">Task Title</td>
                                             <td style="padding-left: 27px; border-right: 1px solid black;">Lead</td>
-                                            <td style="padding-left: 27px;">
-                                                Subtask Count
-                                            </td>
+                                            <td style="padding-left: 27px;">Subtask Count</td>
                                         </tr>
                                         </thead>
                                         <tbody style="background-color: white;">
-                                        <tr style="height: 32px; border-top: 1px solid black;">
-                                            <td style="padding-left: 27px; border-right: 1px solid black;">Backend Deployment</td>
-                                            <td style="padding-left: 27px; border-right: 1px solid black;">David</td>
-                                            <td style="padding-left: 27px;">1</td>
-                                        </tr>
-                                        <tr style="height: 32px; border-top: 1px solid black;">
-                                            <td style="padding-left: 27px; border-right: 1px solid black;">Documentation</td>
-                                            <td style="padding-left: 27px; border-right: 1px solid black;">Alice</td>
-                                            <td style="padding-left: 27px;">1</td>
+                                        <tr th:each="task : ${group.tasks}" style="height: 32px; border-top: 1px solid black;">
+                                            <td style="padding-left: 27px; border-right: 1px solid black;" th:text="${task.title}">Task Title</td>
+                                            <td style="padding-left: 27px; border-right: 1px solid black;" th:text="${task.teamLeader?.name}">Lead</td>
+                                            <td style="padding-left: 27px;" th:text="${#lists.size(task.allChecklists)}">0</td>
                                         </tr>
                                         </tbody>
                                     </table>
@@ -377,64 +299,51 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <div style="width: 100%; padding: 5% 0; display: flex; justify-content: center;">
+    <!--Under Review-->
+    <div style="width: 595px; height: 842px; background-color: white; display: flex; flex-direction: column; justify-content: space-between;"
+        >
+        <p style="width: 199px; background-color: #59BAD5; height: 40px; border-top-right-radius: 12px; border-bottom-left-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 24px; color: white;">
+            <span style="font-weight: bold;">Reports</span>
+        </p>
+
+        <div style="width: 100%; height: 100%; display: flex; flex-direction: column; padding-top: 10%;">
+            <div style="width: 100%; display: flex; justify-content: center;">
                 <div style="height: 100%; display: flex; flex-direction: column; width: 85%;">
                     <p>
-                        VII.&nbsp;&nbsp;Subtasks
+                        III.&nbsp;&nbsp;UNDER REVIEW Information
                     </p>
                     <div>
-                        <div style="padding-top: 5%;">
-                            <div style="border: 1px solid black; border-radius: 5px;">
-                                <table style="width: 100%; font-size: 12px;">
-                                    <tbody style="background-color: white;">
-                                    <tr style="height: 32px; border-bottom: 1px solid black;">
-                                        <td style="padding-left: 27px; border-right: 1px solid black; color: white; background-color: #59BAD5;  ">Task Title</td>
-                                        <td style="padding-left: 27px; border-right: 1px solid black;">Backend Deployment</td>
-                                        <td style="padding-left: 27px;">Documentation</td>
-                                    </tr>
-                                    <tr style="height: 32px; border-bottom: 1px solid black;">
-                                        <td style="padding-left: 27px; border-right: 1px solid black; color: white; background-color: #59BAD5;  ">Subtask Title</td>
-                                        <td style="padding-left: 27px; border-right: 1px solid black;">Deploy to server</td>
-                                        <td style="padding-left: 27px;">Final review</td>
-                                    </tr>
-                                    <tr style="height: 32px; border-bottom: 1px solid black;">
-                                        <td style="padding-left: 27px; border-right: 1px solid black; color: white; background-color: #59BAD5;  ">Members</td>
-                                        <td style="padding-left: 27px; border-right: 1px solid black;">David Alice</td>
-                                        <td style="padding-left: 27px;">Alice</td>
-                                    </tr>
-                                    <tr style="height: 32px; border-bottom: 1px solid black;">
-                                        <td style="padding-left: 27px; border-right: 1px solid black; color: white; background-color: #59BAD5;  ">Attachments</td>
-                                        <td style="padding-left: 27px; border-right: 1px solid black; color: #2563eb;">deploy_guide.pdf , env_var.env</td>
-                                        <td style="padding-left: 27px; color: #2563eb;">docs_final.md</td>
-                                    </tr>
-                                    <tr style="height: 32px; border-bottom: 1px solid black;">
-                                        <td style="padding-left: 27px; border-right: 1px solid black; color: white; background-color: #59BAD5;  ">Comments</td>
-                                        <td style="padding-left: 27px; border-right: 1px solid black;">1 comment</td>
-                                        <td style="padding-left: 27px;">0 comment</td>
-                                    </tr>
-                                    <tr style="height: 32px; border-bottom: 1px solid black;">
-                                        <td style="padding-left: 27px; border-right: 1px solid black; color: white; background-color: #59BAD5;  ">Start Date</td>
-                                        <td style="padding-left: 27px; border-right: 1px solid black;">2025-05-03</td>
-                                        <td style="padding-left: 27px;">2025-05-01</td>
-                                    </tr>
-                                    <tr style="height: 32px;">
-                                        <td style="padding-left: 27px; border-right: 1px solid black; color: white; background-color: #59BAD5;  ">End Date</td>
-                                        <td style="padding-left: 27px; border-right: 1px solid black;">2025-05-04</td>
-                                        <td style="padding-left: 27px;">2025-05-02</td>
-                                    </tr>
-                                    </tbody>
-                                </table>
+                        <div>
+                            <div style="padding-top: 5%;">
+                                <div style="border: 1px solid black; border-radius: 5px;">
+                                    <table style="width: 100%; font-size: 12px;"
+                                           th:each="group : ${groupedTasks}" th:if="${group.stage == 'UNDER_REVIEW'}">
+                                        <thead style="color: white; background-color: #59BAD5;">
+                                        <tr style="height: 26px;">
+                                            <td style="padding-left: 27px; border-right: 1px solid black;">Task Title</td>
+                                            <td style="padding-left: 27px; border-right: 1px solid black;">Lead</td>
+                                            <td style="padding-left: 27px;">Subtask Count</td>
+                                        </tr>
+                                        </thead>
+                                        <tbody style="background-color: white;">
+                                        <tr th:each="task : ${group.tasks}" style="height: 32px; border-top: 1px solid black;">
+                                            <td style="padding-left: 27px; border-right: 1px solid black;" th:text="${task.title}">Task Title</td>
+                                            <td style="padding-left: 27px; border-right: 1px solid black;" th:text="${task.teamLeader?.name}">Lead</td>
+                                            <td style="padding-left: 27px;" th:text="${#lists.size(task.allChecklists)}">0</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <p style="text-align: center; height: 4.5%; font-size: 12px;">page 3</p>
     </div>
-
     <!-- Page 4 -->
     <div style="width: 595px; height: 842px; background-color: white; display: flex; flex-direction: column; justify-content: space-between;">
         <p style="background-color: #59BAD5; width: 199px; height: 40px; border-top-right-radius: 12px; border-bottom-left-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 24px; color: white;">

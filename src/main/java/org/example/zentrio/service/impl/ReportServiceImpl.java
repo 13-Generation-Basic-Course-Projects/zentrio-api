@@ -3,6 +3,7 @@ package org.example.zentrio.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.example.zentrio.dto.response.ChecklistResponse;
 import org.example.zentrio.dto.response.StageTaskGroup;
+import org.example.zentrio.dto.response.TaskRespone;
 import org.example.zentrio.enums.RoleName;
 import org.example.zentrio.exception.BadRequestException;
 import org.example.zentrio.exception.NotFoundException;
@@ -29,6 +30,7 @@ public class ReportServiceImpl implements ReportService {
     private final BoardService  boardService;
     private final ReportRepository reportRepository;
     private final MemberRepository memberRepository;
+    private final TaskRepository taskRepository;
 
     public UUID userId (){
         AppUser appUser= (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -60,13 +62,13 @@ public class ReportServiceImpl implements ReportService {
         if (report == null) {
             throw new NotFoundException("Report not found");
         }
-        List<AllTasks> rawTasks = Optional.ofNullable(reportRepository.getTasks(boardId))
+        List<TaskRespone> rawTasks = Optional.ofNullable(taskRepository.getAllDataInTaskByBoardId(boardId))
                 .orElse(Collections.emptyList());
 
 
         // ✅ Group tasks by stage
-        Map<String, List<AllTasks>> tasksByStage = rawTasks.stream()
-                .collect(Collectors.groupingBy(AllTasks::getTask));
+        Map<String, List<TaskRespone>> tasksByStage = rawTasks.stream()
+                .collect(Collectors.groupingBy(TaskRespone::getStage));
 
         // ✅ Create StageTaskGroup list
         List<StageTaskGroup> groupedTasks = tasksByStage.entrySet().stream()
