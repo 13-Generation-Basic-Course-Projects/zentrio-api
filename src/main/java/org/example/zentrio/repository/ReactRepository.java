@@ -45,7 +45,7 @@ public interface ReactRepository {
 
 
     @Select("""
-            SELECT * FROM reacts WHERE react_id #{reactId}
+            SELECT * FROM reacts WHERE react_id = #{reactId}
             """)
     @ResultMap("reactMapper")
     React GetReactById(UUID reactId);

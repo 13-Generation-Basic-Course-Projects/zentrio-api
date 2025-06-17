@@ -45,4 +45,6 @@ public interface DocumentService {
     ResponseEntity<?> downloadFolderAsZip(UUID documentId, String accessToken);
 
     Void saveGoogleEmailDrive(String email);
+
+    List<Document> getAllDocumentsAllUser(UUID boardId);
 }

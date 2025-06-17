@@ -126,7 +126,7 @@ public class TaskServiceImpl implements TaskService {
     public Task createTaskByBoardIdAndGanttBarId(TaskRequest taskRequest) {
         Board board = boardRepository.getBoardByBoardId(taskRequest.getBoardId());
         if (board == null) {
-            throw new NotFoundException("Boatitlerd with ID " + taskRequest.getBoardId() + " not found");
+            throw new NotFoundException("Board with ID " + taskRequest.getBoardId() + " not found");
         }
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
 
@@ -414,8 +414,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public HashSet<TaskResponse> getTasksByBoardId(UUID boardId) {
         boardService.getBoardByBoardId(boardId);
-        HashSet<TaskResponse>  taskRespones= new HashSet<>( taskRepository.getAllDataInTaskByBoardId(boardId));
-        return taskRespones;
+        return new HashSet<>( taskRepository.getAllDataInTaskByBoardId(boardId));
 
     }
 

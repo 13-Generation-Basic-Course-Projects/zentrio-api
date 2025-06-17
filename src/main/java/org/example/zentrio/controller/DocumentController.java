@@ -59,6 +59,21 @@ public class DocumentController {
     }
 
 
+    @GetMapping("/boards/{board-id}/all-user")
+    @Operation(summary = "Get all documents  from all user by board id")
+    public ResponseEntity<ApiResponse<List<Document>>>  getAllDocumentsAllUser(@PathVariable("board-id") UUID boardId) {
+        // Call the DriveService to get the folders
+        ApiResponse<List<Document>> response =  ApiResponse.<List<Document>>builder()
+                .success(true)
+                .message("Get all documents  from all user by board id Successfully ")
+                .payload(documentService.getAllDocumentsAllUser(boardId))
+                .status(HttpStatus.OK)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+
     @GetMapping("/{document-id}")
     @Operation(summary = "Get document by document id")
     public ResponseEntity<ApiResponse<Document>> getDocumentById( @PathVariable("document-id") UUID documentId) {

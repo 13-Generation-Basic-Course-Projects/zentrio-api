@@ -14,6 +14,6 @@ import java.util.List;
 public class StageTaskGroup {
     private String stage;
     private int count;
-    private List<AllTasks> tasks;
+    private List<TaskResponse> tasks;
 
 }

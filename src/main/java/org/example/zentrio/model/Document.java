@@ -15,7 +15,7 @@ public class Document {
 
     private UUID documentId;
     private LocalDateTime creationDate;
-    private boolean is_private;
+    private boolean is_public;
     private String documentType;
     private UUID ownerId;
     private UUID boardId;

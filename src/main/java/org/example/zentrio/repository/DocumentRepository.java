@@ -18,7 +18,7 @@ public interface DocumentRepository {
     @Results(id = "folderMapper", value = {
             @Result(property = "documentId", column = "document_id"),
             @Result(property = "creationDate", column = "created_at"),
-            @Result(property = "is_private", column = "is_private"),
+            @Result(property = "is_public", column = "is_public"),
             @Result(property = "documentType", column = "doc_type"),
             @Result(property = "ownerId", column = "user_id"),
             @Result(property = "boardId", column = "board_id"),
@@ -108,4 +108,12 @@ public interface DocumentRepository {
         """)
     @ResultMap("folderMapper")
     Document getDocumentByDocumentId(UUID documentId);
+
+
+    @Select("""
+            SELECT  * FROM  documents  
+            WHERE  board_id= #{boardId}
+            """)
+    @ResultMap("folderMapper")
+    List<Document> getAllDocumentsAllUser(UUID boardId);
 }

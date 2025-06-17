@@ -4,12 +4,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.example.zentrio.dto.response.ApiResponse;
-import org.example.zentrio.dto.response.AppUserResponse;
-import org.example.zentrio.dto.response.ChecklistResponse;
+import org.example.zentrio.dto.response.*;
 import org.example.zentrio.model.AllMember;
 import org.example.zentrio.model.AllTasks;
 import org.example.zentrio.model.Report;
+import org.example.zentrio.repository.MemberRepository;
 import org.example.zentrio.service.ReportService;
 import org.example.zentrio.service.impl.PdfService;
 import org.springframework.http.HttpHeaders;
@@ -29,7 +28,7 @@ import java.util.*;
 public class ReportController {
     private final ReportService reportService;
     private final PdfService   pdfService;
-
+    private  final MemberRepository memberRepository;
     @GetMapping("/boards/{board-id}")
     @Operation(summary = "Get report by board id")
     public ResponseEntity<ApiResponse<Report>> getReportByBoardId(@PathVariable("board-id") UUID boardId) {
@@ -105,13 +104,47 @@ public class ReportController {
 @Operation(summary = "Generate report as pdf file by board id")
 public ResponseEntity<byte[]> generateProjectReport(@PathVariable("board-id") UUID boardId) {
     Report report = reportService.getReportByBoardId(boardId); // You parse JSON into this DTO
+    String teamLead = memberRepository.getPmData(boardId);
+    int taskCount = 0;
+    for (StageTaskGroup data: report.getGroupedTasks()){
+        taskCount+= data.getCount();
+    }
+    List<StageSummary> stageSummaries = new ArrayList<>();
+
+    for (StageTaskGroup group : report.getGroupedTasks()) {
+        int checklistCount = 0;
+
+        for (TaskRespone task : group.getTasks()) {
+            if (task.getAllChecklists() != null) {
+                checklistCount += task.getAllChecklists().size();
+
+            }
+        }
+
+        stageSummaries.add(new StageSummary(
+                group.getStage(),
+                group.getTasks().size(),
+                checklistCount
+        ));
+    }
+    List<StageTaskGroup> groupedTasks = report.getGroupedTasks();
+
+
+
 
     Map<String, Object> data = new HashMap<>();
+
+
+    data.put("teamLead", teamLead);
     data.put("boardName", report.getBoardName());
-    data.put("creationDate", report.getCreationDate());
+    data.put("creationDate", report.getBoardData().getCreatedAt());
     data.put("version", report.getVersion());
     data.put("allMembers", report.getAllMembers());
-    data.put("allTasks", report.getAllTasks());
+    data.put("allTasks", report.getGroupedTasks());
+    data.put("taskCount", taskCount);
+    data.put("stageSummaries", stageSummaries);
+    data.put("groupedTasks", groupedTasks); // passed into Thymeleaf
+
 
     byte[] pdf = pdfService.generatePdf("project-report", data); // Use your pdfService like before
 
