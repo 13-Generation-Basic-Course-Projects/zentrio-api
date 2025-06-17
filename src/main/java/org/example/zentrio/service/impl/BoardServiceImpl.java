@@ -257,8 +257,9 @@ public class BoardServiceImpl implements BoardService {
         );
 
         String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/api/v1/boards/" + fileName)
+                .path("/api/v1/boards/" +boardId+ "/cover/" + fileName)
                 .toUriString();
+
 
         return FileMetadata.builder()
                 .fileName(fileName)

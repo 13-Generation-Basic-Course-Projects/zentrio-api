@@ -3,6 +3,7 @@ package org.example.zentrio.jwt;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.example.zentrio.model.AppUser;
 import org.springframework.stereotype.Component;
 
@@ -10,6 +11,7 @@ import javax.crypto.SecretKey;
 import java.util.*;
 import java.util.function.Function;
 
+@Slf4j
 @Component
 public class JwtService {
 
@@ -43,6 +45,11 @@ public class JwtService {
 
     //3. retrieving any information from token we will need the secret key
     private Claims extractAllClaim(String token) {
+        log.info("Extracting claims from token {}", Jwts.parser()
+                .verifyWith(getSignKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload());
         return Jwts.parser()
                 .verifyWith(getSignKey())
                 .build()

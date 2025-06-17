@@ -13,6 +13,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import lombok.extern.slf4j.Slf4j;
@@ -75,21 +76,13 @@ public class EmailServiceImpl implements EmailService {
                     "You’ve been invited to join a project board. Click the button below to accept the invitation.");
 
             // Generate the frontend invitation URL
-            String acceptInvitationUrl = String.format(
-                    "http://localhost:3000/dashboard/%s/%s/board?role=%s",
-                    workspaceId,
-                    boardId,
-                    URLEncoder.encode(role.name().toLowerCase(), StandardCharsets.UTF_8)
-            );
+            String acceptInvitationUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/api/v1/boards/" + boardId + "/workspaces/" + workspaceId + "/invitations/accept")
+                    .queryParam("email", email)
+                    .queryParam("roleRequest", role.name())
+                    .toUriString();
 
-            AppUser user = appUserRepository.getUserByEmail(email);
-            String loginInvitationUrl = "http://localhost:3000/login";
-
-            if(user == null) {
-                context.setVariable("inviteLink", loginInvitationUrl);
-            }else{
             context.setVariable("inviteLink", acceptInvitationUrl);
-            }
 
             log.info("Generated invitation URL: {}", acceptInvitationUrl);
 

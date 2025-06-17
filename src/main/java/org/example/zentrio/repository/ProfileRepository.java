@@ -2,7 +2,6 @@ package org.example.zentrio.repository;
 
 import org.apache.ibatis.annotations.*;
 import org.example.zentrio.dto.request.ProfileRequest;
-import org.example.zentrio.dto.response.AppUserResponse;
 import org.example.zentrio.model.AppUser;
 
 import java.util.UUID;
@@ -51,4 +50,10 @@ public interface ProfileRepository {
             """)
     @ResultMap("profileMapper")
     AppUser getProfileByUserId(UUID userId);
+
+    @Select("""
+        UPDATE users set profile_image = #{profileImage}
+        WHERE user_id = #{userId}
+    """)
+    void updateProfileCover(UUID userId, String profileImage);
 }

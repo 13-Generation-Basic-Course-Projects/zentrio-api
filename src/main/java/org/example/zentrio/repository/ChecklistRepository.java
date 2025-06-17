@@ -110,7 +110,6 @@ public interface ChecklistRepository {
                 UPDATE checklists
                 SET cover = #{cover}
                 WHERE checklist_id = #{checklistId}
-                RETURNING *
             """)
     @ResultMap("checklistMapper")
     void updateCover(UUID checklistId, String cover);
@@ -119,29 +118,29 @@ public interface ChecklistRepository {
     @Select("""
                 SELECT COUNT(*) FROM checklists
                 WHERE task_id = #{taskId}
-                AND status != 'COMPLETED'
+                AND status != 'DONE'
             """)
     long countIncompleteByTaskId(UUID taskId);
 
 
     @Select("""
-        UPDATE checklists SET status = #{status}
-        WHERE checklist_id = #{checklistId}
-    """)
-    void updateStatusOfChecklistById(UUID checklistId,String status);
+                UPDATE checklists SET status = #{status}
+                WHERE checklist_id = #{checklistId}
+            """)
+    void updateStatusOfChecklistById(UUID checklistId, String status);
 
     @Select("""
-        SELECT * FROM checklists
-    """)
+                SELECT * FROM checklists
+            """)
     @ResultMap("checklistMapper")
     HashSet<Checklist> getAllChecklists();
 
     @Select("""
-        SELECT c.* FROM members m
-        INNER JOIN tasks ON m.member_id = tasks.created_by
-        INNER JOIN checklists c ON tasks.task_id = c.task_id
-        WHERE m.user_id = #{userId}
-    """)
+                SELECT c.* FROM members m
+                INNER JOIN tasks ON m.member_id = tasks.created_by
+                INNER JOIN checklists c ON tasks.task_id = c.task_id
+                WHERE m.user_id = #{userId}
+            """)
     @ResultMap("checklistMapper")
     HashSet<Checklist> getAllChecklistsByCurrentUser(UUID userId);
 
@@ -164,7 +163,6 @@ public interface ChecklistRepository {
     List<MemberResponseData> getMembersByChecklistId(UUID checklistId);
 
 
-
     @Results(id = "checklistResponeMapper", value = {
             @Result(property = "checklistId", column = "checklist_id"),
             @Result(property = "title", column = "title"),
@@ -181,42 +179,50 @@ public interface ChecklistRepository {
             @Result(property = "taskId", column = "task_id"),
             @Result(property = "createdBy", column = "created_by"),
             @Result(property = "attachment", column = "checklist_id",
-            one = @One(select = "org.example.zentrio.repository.AttachmentRepository.getAttachmentByChecklistId")),
+                    one = @One(select = "org.example.zentrio.repository.AttachmentRepository.getAttachmentByChecklistId")),
             @Result(property = "allComments", column = "checklist_id",
-            many = @Many(select = "org.example.zentrio.repository.CommentRepository.getAllComments"))
+                    many = @Many(select = "org.example.zentrio.repository.CommentRepository.getAllComments"))
     })
     @Select("""
-               SELECT * FROM checklists WHERE task_id= #{taskId}
-               """)
+            SELECT * FROM checklists WHERE task_id= #{taskId}
+            """)
     List<ChecklistRespone> getAllDataInChecklistByTaskId(UUID taskId);
 
     @Select("""
-        
-            UPDATE checklists
-        SET checklist_order = CASE
-                             WHEN
-                                 checklist_order= #{oldOrder} THEN #{newOrder}
-                             WHEN checklist_order BETWEEN #{newOrder} AND #{till} THEN checklist_order  + 1 -- move down
-            ELSE checklist_order
-        END
-            WHERE task_id = #{taskId}
-                  AND checklist_order  BETWEEN #{newOrder} AND #{oldOrder};
-        
-        """)
+            
+                UPDATE checklists
+            SET checklist_order = CASE
+                                 WHEN
+                                     checklist_order= #{oldOrder} THEN #{newOrder}
+                                 WHEN checklist_order BETWEEN #{newOrder} AND #{till} THEN checklist_order  + 1 -- move down
+                ELSE checklist_order
+            END
+                WHERE task_id = #{taskId}
+                      AND checklist_order  BETWEEN #{newOrder} AND #{oldOrder};
+            
+            """)
     void moveChecklistOrderDown(int oldOrder, int newOrder, int till, UUID taskId);
 
 
     @Select("""
-        
-            UPDATE checklists
-        SET checklist_order = CASE
-                             WHEN checklist_order = #{oldOrder} THEN #{newOrder}
-                             WHEN checklist_order BETWEEN #{till} AND #{newOrder} THEN checklist_order - 1  -- move up
-            ELSE checklist_order
-        END
-            WHERE task_id = #{taskId}
-                    AND checklist_order BETWEEN #{oldOrder} AND #{newOrder};
-        """)
+            
+                UPDATE checklists
+            SET checklist_order = CASE
+                                 WHEN checklist_order = #{oldOrder} THEN #{newOrder}
+                                 WHEN checklist_order BETWEEN #{till} AND #{newOrder} THEN checklist_order - 1  -- move up
+                ELSE checklist_order
+            END
+                WHERE task_id = #{taskId}
+                        AND checklist_order BETWEEN #{oldOrder} AND #{newOrder};
+            """)
     void moveChecklistOrderUp(int oldOrder, int newOrder, int till, UUID taskId);
+
+
+    @Select("""
+                SELECT COUNT(*) FROM task_assignments
+                WHERE task_id = #{taskId}
+            """)
+    int getTaskAssignIdByTaskId(UUID taskId);
+
 
 }

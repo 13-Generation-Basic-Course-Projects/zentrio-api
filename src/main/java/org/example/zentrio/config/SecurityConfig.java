@@ -40,8 +40,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auths/**", "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
-                        ).permitAll()
+                        ).permitAll().requestMatchers("/api/v1/boards/*/invitations/accept").permitAll()
                         .requestMatchers("/api/v1/boards/{board-id}/workspaces/{workspace-id}/invitations/accept").permitAll()
+                        .requestMatchers("/api/v1/profiles/profile-image/**").permitAll()
                         .requestMatchers("/api/v1/files/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
