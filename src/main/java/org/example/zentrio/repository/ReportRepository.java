@@ -65,8 +65,8 @@ public interface ReportRepository {
             many =@Many (select = "getMember") ),
             @Result(property = "boardName" , column = "board_id",
             one = @One(select = "boardName")),
-            @Result(property = "allTasks" , column = "board_id",
-                    many= @Many(select = "getTasks")),
+//            @Result(property = "allTasks" , column = "board_id",
+//                    many= @Many(select = "org.example.zentrio.repository.TaskRepository.getAllDataInTaskByBoardId")),
     })
     Report getReportByBoardId(UUID boardId);
 

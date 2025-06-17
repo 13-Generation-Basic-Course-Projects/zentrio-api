@@ -3,7 +3,6 @@ package org.example.zentrio.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.checkerframework.checker.units.qual.A;
 import org.example.zentrio.dto.response.StageTaskGroup;
 
 import java.time.LocalDate;
@@ -22,6 +21,6 @@ public class Report {
     private Board boardData;
     private List<AllMember> allMembers;
     private String boardName;
-    private List<AllTasks> allTasks;
+//    private List<TaskRespone> allTasks;
     private List<StageTaskGroup> groupedTasks;
 }

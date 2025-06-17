@@ -187,7 +187,7 @@ public interface TaskRepository {
     HashSet<Task> getAllTasks();
 
     @Select("""
-                SELECT u.username, u.profile_image , u.user_id FROM users u
+                SELECT u.username, u.profile_image , u.user_id , u.gender FROM users u
                 INNER JOIN members m ON u.user_id = m.user_id
                 WHERE m.member_id = #{userId}
             """)
@@ -195,6 +195,7 @@ public interface TaskRepository {
 
             @Result(property = "userId", column = "user_id"),
             @Result(property = "username", column = "username"),
+            @Result(property = "gender", column = "gender"),
             @Result(property = "imageUrl", column = "profile_image")
     })
     MemberResponseData getDataOfUserCreator(UUID userId);
@@ -249,8 +250,8 @@ public interface TaskRepository {
             @Result(property = "createdBy", column = "created_by"),
             @Result(property = "creator", column = "created_by",
                     one = @One(select = "getDataOfUserCreator")),
-
-
+            @Result(property = "teamLeader", column = "task_id",
+                    one = @One(select = "getTeamLeadData")),
             @Result(property = "allChecklists", column = "task_id",
                     many = @Many(select = "org.example.zentrio.repository.ChecklistRepository.getAllDataInChecklistByTaskId")),
     })
@@ -298,7 +299,8 @@ public interface TaskRepository {
             SELECT
             u.profile_image AS image,
             u.username AS name,
-            u.user_id
+            u.user_id,
+            u.gender
         FROM
             task_assignments ta
                 INNER JOIN
@@ -311,6 +313,7 @@ public interface TaskRepository {
     @Results(id = "teamLeadResponseMapper", value = {
             @Result(property = "userId", column = "user_id"),
             @Result(property = "imageUrl", column = "image"),
+            @Result(property = "gender", column = "gender"),
             @Result(property = "username", column = "name"),
     })
     MemberResponseData getTeamLeadData(UUID taskId);

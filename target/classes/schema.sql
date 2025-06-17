@@ -389,8 +389,9 @@ CREATE TABLE reacts (
                         reaction_type VARCHAR(20) NOT NULL CHECK (
                         reaction_type IN ('LIKE', 'LOVE', 'FUNNY', 'SAD', 'ANGRY', 'SURPRISED')),
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        created_by  UUID UNIQUE  REFERENCES members(member_id) ON DELETE CASCADE ON UPDATE CASCADE ,
-                        announcement_id UUID  REFERENCES announcements(announcement_id) ON DELETE CASCADE ON UPDATE CASCADE
+                        created_by  UUID NOT NULL   REFERENCES members(member_id) ON DELETE CASCADE ON UPDATE CASCADE ,
+                        announcement_id UUID NOT NULL  REFERENCES announcements(announcement_id) ON DELETE CASCADE ON UPDATE CASCADE,
+                        UNIQUE (created_by, announcement_id)
 );
 
 

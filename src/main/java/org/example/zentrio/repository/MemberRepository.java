@@ -136,4 +136,14 @@ public interface MemberRepository {
     SELECT  member_id FROM members WHERE user_id= #{userId} AND board_id=#{boardId} LIMIT 1;
     """)
     UUID getMemberIdInboard(UUID userId, UUID boardId);
+
+    @Select("""
+      
+            SELECT  us.username FROM  users us
+          INNER JOIN  members m  ON m.user_id= us.user_id
+          INNER JOIN roles r ON  r.role_id = m.role_id
+      WHERE r.role_name='ROLE_MANAGER' AND m.board_id=#{boardId}
+      
+        """)
+    String getPmData(UUID boardId);
 }

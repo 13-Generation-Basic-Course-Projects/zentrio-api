@@ -33,6 +33,8 @@ public interface BoardRepository {
             @Result(property = "cover", column = "cover"),
             @Result(property = "createdAt", column = "created_at"),
             @Result(property = "updatedAt", column = "updated_at"),
+            @Result(property = "createdBy", column = "workspace_id",
+            one = @One(select = "getPmByWorkspaceId")),
             @Result(property = "isFavourite", column = "is_favourite"),
             @Result(property = "workspaceId", column = "workspace_id")
     })
@@ -257,14 +259,15 @@ public interface BoardRepository {
 
     @Select("""
              
-                   SELECT u.profile_image AS image , u.username AS name, u.user_id FROM users u
+                   SELECT u.profile_image AS image , u.username AS name, u.user_id, u.gender FROM users u
                         inner join workspaces wk on u.user_id = wk.created_by
                 WHERE wk.workspace_id= #{workspaceId}
         """)
     @Results(id = "userWorkspaceMapper", value = {
             @Result(property = "userId", column = "user_id"),
+            @Result(property = "gender", column = "gender"),
             @Result(property = "imageUrl", column = "image"),
             @Result(property = "username", column = "name"),
     })
-    MemberResponseData getMemberByUserId(UUID workspaceId);
+    MemberResponseData getPmByWorkspaceId(UUID workspaceId);
 }

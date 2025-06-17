@@ -599,6 +599,19 @@ public class DocumentServiceImpl implements DocumentService {
         }
     }
 
+    @Override
+    public List<Document> getAllDocumentsAllUser(UUID boardId) {
+        Board board = boardRepository.getBoardByBoardId(boardId);
+        if (board == null) {
+            throw new NotFoundException("Board not found");
+        }
+        List<Document> documentList= documentRepository.getAllDocumentsAllUser(boardId);
+        if (documentList.isEmpty()){
+           throw new NotFoundException("No documents found");
+        }
+        return documentList;
+    }
+
 
 }
 

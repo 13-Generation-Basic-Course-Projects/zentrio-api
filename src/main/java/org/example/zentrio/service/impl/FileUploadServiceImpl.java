@@ -65,7 +65,7 @@ public class FileUploadServiceImpl implements FileUploadService {
     @Override
     public void deleteFileById(String accessToken, String fileId) throws GeneralSecurityException, IOException {
         Drive drive = documentService.createDriveService(accessToken);
-        validateFolder(fileId);
+
 
         File fileMetadata;
         try {
