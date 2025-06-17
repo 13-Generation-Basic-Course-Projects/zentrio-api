@@ -3,7 +3,7 @@ package org.example.zentrio.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.example.zentrio.dto.response.ChecklistResponse;
 import org.example.zentrio.dto.response.StageTaskGroup;
-import org.example.zentrio.dto.response.TaskRespone;
+import org.example.zentrio.dto.response.TaskResponse;
 import org.example.zentrio.enums.RoleName;
 import org.example.zentrio.exception.BadRequestException;
 import org.example.zentrio.exception.NotFoundException;
@@ -62,13 +62,13 @@ public class ReportServiceImpl implements ReportService {
         if (report == null) {
             throw new NotFoundException("Report not found");
         }
-        List<TaskRespone> rawTasks = Optional.ofNullable(taskRepository.getAllDataInTaskByBoardId(boardId))
+        List<TaskResponse> rawTasks = Optional.ofNullable(taskRepository.getAllDataInTaskByBoardId(boardId))
                 .orElse(Collections.emptyList());
 
 
         // ✅ Group tasks by stage
-        Map<String, List<TaskRespone>> tasksByStage = rawTasks.stream()
-                .collect(Collectors.groupingBy(TaskRespone::getStage));
+        Map<String, List<TaskResponse>> tasksByStage = rawTasks.stream()
+                .collect(Collectors.groupingBy(TaskResponse::getStage));
 
         // ✅ Create StageTaskGroup list
         List<StageTaskGroup> groupedTasks = tasksByStage.entrySet().stream()
@@ -112,8 +112,7 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public Set<ChecklistResponse> getChecklistById(UUID takId) {
 
-        Set<ChecklistResponse>  response=new  HashSet<>(reportRepository.getChecklistById(takId));
-        return response;
+        return new  HashSet<>(reportRepository.getChecklistById(takId));
     }
 
     @Override
