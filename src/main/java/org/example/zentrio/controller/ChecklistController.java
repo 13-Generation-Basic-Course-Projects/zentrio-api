@@ -153,7 +153,7 @@ public class ChecklistController {
 
 
     @Operation(summary = "Assigned member to checklist", description = "Assigned member to checklist with specific members ID")
-    @PostMapping("{checklist-id}/tasks/{task-id}/members{assigned-by}/members/{assigned-to}/")
+    @PostMapping("{checklist-id}/tasks/{task-id}/members/{assigned-by}/members/{assigned-to}/")
     public ResponseEntity<?> assignMemberToChecklist(
             @PathVariable("checklist-id") UUID checklistId,
             @PathVariable("task-id") UUID taskId,

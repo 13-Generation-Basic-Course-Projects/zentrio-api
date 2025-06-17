@@ -4,11 +4,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.example.zentrio.dto.request.TaskRequest;
 import org.example.zentrio.dto.response.ApiResponse;
-import org.example.zentrio.dto.response.TaskRespone;
 import org.example.zentrio.dto.response.TaskResponse;
 import org.example.zentrio.enums.Stage;
 import org.example.zentrio.enums.Status;
@@ -20,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -79,9 +76,9 @@ public class TaskController {
 
     @Operation(summary = "Get all task by board ID", description = "Get all task by specific board ID ")
     @GetMapping("/boards/{board-id}")
-    public ResponseEntity<ApiResponse<HashSet<TaskRespone>>> getTasksByBoardId(
+    public ResponseEntity<ApiResponse<HashSet<TaskResponse>>> getTasksByBoardId(
             @PathVariable("board-id") UUID boardId) {
-        ApiResponse<HashSet<TaskRespone>> apiResponse = ApiResponse.<HashSet<TaskRespone>>builder()
+        ApiResponse<HashSet<TaskResponse>> apiResponse = ApiResponse.<HashSet<TaskResponse>>builder()
                 .success(true)
                 .message("Get all task by board ID successfully")
                 .payload(taskService.getTasksByBoardId(boardId))

@@ -75,8 +75,6 @@ public class NotificationServiceImpl implements NotificationService {
             throw new NotFoundException("Task assign ID " +taskId+ "not found");
         }
 
-
-
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         UUID senderUUID;
         UUID receiverUUID;
@@ -93,10 +91,11 @@ public class NotificationServiceImpl implements NotificationService {
             throw new BadRequestException("User with ID " + receiverId + " not found");
         }
 
-        UUID taskAssignId = notificationRepository.getTaskAssignId(taskId, receiverUUID);
-        if (taskAssignId == null) {
-            throw new NotFoundException("Task assignment not found for task ID " + taskId + " and user ID " + receiverId);
-        }
+//        UUID taskAssignId = notificationRepository.getTaskAssignId(taskId);
+//        if (taskAssignId == null) {
+//            throw new NotFoundException("Task assignment not found for task ID " + taskId );
+//        }
+
 
         // 1. Send push notification via OneSignal
         String url = "https://onesignal.com/api/v1/notifications";
@@ -104,9 +103,9 @@ public class NotificationServiceImpl implements NotificationService {
         headers.set("Content-Type", "application/json; charset=UTF-8");
         headers.set("Authorization", "Basic " + REST_API_KEY);
 
-        String userStrId = UUID.fromString(userId.toString()).toString();
+        String userStrId = receiverUUID.toString();
+        String strJsonBody = buildJsonBodyForSingleUser(message, userStrId);
 
-        String strJsonBody = buildJsonBodyForSingleUser(message,(userStrId));
         HttpEntity<String> request = new HttpEntity<>(strJsonBody, headers);
         restTemplate.postForEntity(url, request, String.class);
 
@@ -124,7 +123,7 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setCreatedAt(LocalDateTime.now());
         notification.setSenderId(senderUUID);
         notification.setReceiverId(receiverUUID);
-        notification.setTaskId(taskAssignId);
+//        notification.setTaskAssignId(taskAssignId);
         notificationRepository.insertNotification(notification);
         System.out.println("notification: " + notification);
 
@@ -137,6 +136,22 @@ public class NotificationServiceImpl implements NotificationService {
             throw new BadRequestException("User with ID " + userId + " not found");
         }
         return notificationRepository.getNotificationsByUserId(userId);
+    }
+
+    @Override
+    public void deleteNotificationByUserId(UUID notificationId) {
+       Notification notification = notificationRepository.getNotificationById(notificationId);
+       if (notification == null) {
+           throw new NotFoundException("Notification with ID " + notificationId + " not found");
+       }
+       UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+       notificationRepository.deleteNotificationByIdAndByUserId(notificationId,userId);
+    }
+
+    @Override
+    public void deleteAllNotifications() {
+        UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+        notificationRepository.deleteAllNotifications(userId);
     }
 
     private String buildJsonBodyForAllUsers(String message) throws JsonProcessingException {
@@ -169,6 +184,5 @@ public class NotificationServiceImpl implements NotificationService {
 
         return objectMapper.writeValueAsString(body);
     }
-
 
 }

@@ -95,6 +95,8 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException("Your email isn't verified to use try again");
         }
         String token = jwtService.generateToken(request.getEmail());
+
+        System.out.println("token: " + token);
         return TokenResponse.builder()
                 .token(token)
                 .build();
@@ -181,7 +183,10 @@ public class AuthServiceImpl implements AuthService {
 //                .setAudience(Collections.singleton("555065390048-dcgfpec66hk6e3oqs46nhuqlpg4a8c3f.apps.googleusercontent.com"))
                 .build();
 
+        System.out.println("token from fronted       " + request.getIdToken());
         GoogleIdToken idToken = verifier.verify(request.getIdToken());
+
+        System.out.println("idToken: " + idToken);
 
         if (idToken == null) {
             throw new BadRequestException("Invalid ID token");
@@ -190,18 +195,23 @@ public class AuthServiceImpl implements AuthService {
         GoogleIdToken.Payload payload = idToken.getPayload();
 
         String email = payload.getEmail();
-        if(appUserRepository.getUserByEmail(email) != null) {
-            throw new BadRequestException("This email is already logged in.");
-        }
-//        String googleId = (passwordEncoder.encode(payload.getSubject()));
+
         String googleId = payload.getSubject();
+
         String name = (String) payload.get("name");
         String picture = (String) payload.get("picture");
         Boolean emailVerified = (Boolean) payload.get("email_verified");
         String provider = request.getProvider();
         System.out.println("provider = " + provider);
-        authRepository.insertUser(email, name, googleId, picture, emailVerified,provider);
+
+        AppUser user = appUserRepository.getUserByEmail(email);
+        if(user ==  null) {
+            authRepository.insertUser(email, name, googleId, picture, emailVerified,provider);
+        }
         String token = jwtService.generateToken(email);
+
+        System.out.println("token: " + token);
+
         return TokenResponse.builder()
                 .token(token)
                 .build();

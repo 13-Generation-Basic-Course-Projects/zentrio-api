@@ -21,6 +21,6 @@ public class OtherWorkspaceResponse {
     private String title;
     private String description;
     private MemberResponseData createdByDetails;
-    private List<Board> otherBoards;
+    private List<JoinBoardResponse> otherBoards;
 
 }

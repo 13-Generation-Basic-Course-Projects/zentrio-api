@@ -18,7 +18,7 @@ public class Notification {
     private String type;
     private Boolean isRead;
     private LocalDateTime createdAt;
-    private UUID taskId;
+    private UUID taskAssignId;
     private UUID senderId;
     private AppUserResponse sender;
     private UUID receiverId;

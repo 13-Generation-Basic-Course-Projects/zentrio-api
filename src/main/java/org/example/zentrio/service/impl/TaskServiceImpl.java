@@ -2,7 +2,7 @@ package org.example.zentrio.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.example.zentrio.dto.request.TaskRequest;
-import org.example.zentrio.dto.response.TaskRespone;
+import org.example.zentrio.dto.response.TaskResponse;
 import org.example.zentrio.enums.RoleName;
 import org.example.zentrio.enums.Stage;
 import org.example.zentrio.enums.Status;
@@ -108,6 +108,14 @@ public class TaskServiceImpl implements TaskService {
     public void validateCurrentUserRoles(UUID boardId) {
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         List<String> roleName = roleRepository.getRolesNameByBoardIdAndUserId(boardId, userId);
+
+        System.out.println("user id get from fronted" + userId);
+
+        System.out.println("roleName from the fronted: " + roleName);
+
+        System.out.println("board id from the fronted: " + boardId);
+
+
         if (roleName == null || !roleName.contains(RoleName.ROLE_MANAGER.toString())) {
             throw new ForbiddenException("You're not manager in this board can't assign role");
         }
@@ -128,7 +136,6 @@ public class TaskServiceImpl implements TaskService {
 
         // Determine the role of the user in the board
         List<String> roles = roleRepository.getRolesNameByBoardIdAndUserId(board.getBoardId(), userId); // returns "MANAGER" or "TEAM_LEADER"
-        System.out.println("role: " + roles);
 
         UUID creatorMemberId;
 
@@ -262,15 +269,11 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public void assignLeaderToTask(UUID taskId, UUID assigneeId) {
-
         Task task = getTaskById(taskId);
-
-
-        validateCurrentUserRoles(task.getBoardId());
-        if (taskRepository.isAlreadyAssigned(taskId)) {
-            throw new ConflictException("Task's with ID " + taskId + " is already assigned Leader");
-        }
-
+        // note for any updated
+//        if (taskRepository.isAlreadyAssigned(taskId)) {
+//            throw new ConflictException("Task's with ID " + taskId + " is already assigned Leader");
+//        }
         UUID currentUserId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         UUID assignerMemberId = boardRepository.getManagerMemberIdByUserIdAndBoardId(currentUserId, task.getBoardId());
         Boolean userExistInBoard= boardRepository.getExistUserInBoard(assigneeId,task.getBoardId());
@@ -305,9 +308,9 @@ public class TaskServiceImpl implements TaskService {
         UUID currentUserId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         Task task = getTaskById(taskId);
         UUID boardId = task.getBoardId();
-        if(task.getStatus() == null || !task.getStatus().equals(Status.COMPLETED.toString())) {
-            throw new BadRequestException("You can't move tasks with status " + task.getStatus());
-        }
+//        if(task.getStatus() == null || !task.getStatus().equals(Status.COMPLETED.toString())) {
+//            throw new BadRequestException("You can't move tasks with status " + task.getStatus());
+//        }
 
         // 2. Get user roles for the board
         List<String> userRoles = roleRepository.getRolesNameByBoardIdAndUserId(boardId, currentUserId);
@@ -331,6 +334,10 @@ public class TaskServiceImpl implements TaskService {
                 String currentStage = taskRepository.getTaskStage(taskId);
                 if (!"IN_PROGRESS".equals(currentStage)) {
                     throw new BadRequestException("Task must be IN_PROGRESS to move to UNDER_REVIEW.");
+                }
+                long incompleteChecklistCountInProgress = checklistRepository.countIncompleteByTaskId(taskId);
+                if(incompleteChecklistCountInProgress > 0) {
+                    throw new BadRequestException("Cannot move to UNDER_REVIEW until all checklist items are done.");
                 }
                 break;
 
@@ -375,11 +382,11 @@ public class TaskServiceImpl implements TaskService {
         Task task = getTaskById(taskId);
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
 //        System.out.println("task" + task.getBoardId());
-        String roleName = roleRepository.getRoleNameByBoardIdAndUserId(task.getBoardId(),userId);
+//        String roleName = roleRepository.getRoleNameByBoardIdAndUserId(task.getBoardId(),userId);
 //        System.out.println("roleName: " + roleName);
-        if(roleName == null) {
-            throw new ForbiddenException("You do not have permission to update this task");
-        }
+//        if(roleName == null) {
+//            throw new ForbiddenException("You do not have permission to update this task");
+//        }
         taskRepository.updateProgressOfTaskById(taskId,Stage.IN_PROGRESS.toString());
     }
 
@@ -405,10 +412,9 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public HashSet<TaskRespone> getTasksByBoardId(UUID boardId) {
+    public HashSet<TaskResponse> getTasksByBoardId(UUID boardId) {
         boardService.getBoardByBoardId(boardId);
-        HashSet<TaskRespone>  taskRespones= new HashSet<>( taskRepository.getAllDataInTaskByBoardId(boardId));
-        return taskRespones;
+        return new HashSet<>( taskRepository.getAllDataInTaskByBoardId(boardId));
 
     }
 

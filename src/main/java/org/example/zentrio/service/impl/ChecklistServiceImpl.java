@@ -150,11 +150,19 @@ ChecklistServiceImpl implements ChecklistService {
             throw new ForbiddenException("You do not have permission to create checklist.");
         }
 
+
         if(memberId == null) {
             throw new ForbiddenException("You're not a Manger or Leader in this board, can't create checklist");
         }
 
-        return checklistRepository.createChecklist(checklistRequest, task.getTaskId(), memberId);
+        Checklist checklist =  checklistRepository.createChecklist(checklistRequest, task.getTaskId(), memberId);
+
+        boolean isHasLeader = checklistRepository.getTaskAssignIdByTaskId(task.getTaskId()) > 0;
+        if (isHasLeader) {
+            checklistRepository.updateStatusOfChecklistById(checklist.getChecklistId(),ChecklistStatus.IN_PROGRESS.toString());
+        }
+        return checklist;
+
     }
 
     @Override

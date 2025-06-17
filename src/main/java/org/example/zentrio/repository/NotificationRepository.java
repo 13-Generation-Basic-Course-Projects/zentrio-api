@@ -16,7 +16,7 @@ public interface NotificationRepository {
             @Result(property = "type", column = "type"),
             @Result(property = "createdAt", column = "created_at"),
             @Result(property = "isRead", column = "is_read"),
-            @Result(property = "taskId", column = "task_id"),
+            @Result(property = "taskAssignId", column = "task_assign_id"),
             @Result(property = "senderId", column = "sender_id"),
             @Result(property = "sender", column = "sender_id",
                     one = @One(select = "org.example.zentrio.repository.AppUserRepository.getUserByUserId")),
@@ -31,8 +31,8 @@ public interface NotificationRepository {
     HashSet<Notification> getNotificationsByUserId(UUID userId);
 
     @Select("""
-                INSERT INTO notifications(notification_id, content, type, is_read, created_at, task_id, sender_id, receiver_id)
-                VALUES(#{notificationId}, #{content}, #{type}, #{isRead}, #{createdAt}, #{taskId}, #{senderId},#{receiverId})
+                INSERT INTO notifications(notification_id, content, type, is_read, created_at, task_assign_id, sender_id, receiver_id)
+                VALUES(#{notificationId}, #{content}, #{type}, #{isRead}, #{createdAt}, #{taskAssignId}, #{senderId},#{receiverId})
             """)
     @ResultMap("notificationMapper")
     void insertNotification(Notification notification);
@@ -41,7 +41,27 @@ public interface NotificationRepository {
         SELECT task_assign_id
         FROM task_assignments
         WHERE task_id = #{taskId}
-        AND user_id = #{userId}
     """)
-    UUID getTaskAssignId(UUID taskId,UUID userId);
+    UUID getTaskAssignId(UUID taskId);
+
+
+    @Select("""
+        DELETE FROM notifications
+        WHERE notification_id = #{notificationId}
+        AND receiver_id = #{userId}
+    """)
+    void deleteNotificationByIdAndByUserId(UUID notificationId, UUID userId);
+
+    @Select("""
+        SELECT * FROM notifications WHERE notification_id = #{notificationId}
+    """)
+    @ResultMap("notificationMapper")
+    Notification getNotificationById(UUID notificationId);
+
+
+    @Select("""
+        DELETE FROM notifications
+        WHERE receiver_id = #{userId}
+    """)
+    void deleteAllNotifications(UUID userId);
 }

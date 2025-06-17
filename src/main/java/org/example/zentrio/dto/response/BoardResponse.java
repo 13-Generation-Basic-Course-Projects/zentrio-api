@@ -22,5 +22,5 @@ public class BoardResponse {
     private LocalDateTime updatedAt;
     private Boolean isFavourite;
     private UUID workspaceId;
-    private List<TaskRespone> allTasks;
+    private List<TaskResponse> allTasks;
 }

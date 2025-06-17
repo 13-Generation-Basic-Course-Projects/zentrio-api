@@ -258,7 +258,7 @@ public interface TaskRepository {
     @Select("""
         SELECT  * FROM tasks WHERE board_id= #{boardId} 
         """)
-    List<TaskRespone> getAllDataInTaskByBoardId(UUID boardId);
+    List<TaskResponse> getAllDataInTaskByBoardId(UUID boardId);
 
     @Select("""
                 SELECT * FROM tasks WHERE board_id= #{boardId}
