@@ -95,6 +95,8 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException("Your email isn't verified to use try again");
         }
         String token = jwtService.generateToken(request.getEmail());
+
+        System.out.println("token: " + token);
         return TokenResponse.builder()
                 .token(token)
                 .build();
@@ -207,6 +209,8 @@ public class AuthServiceImpl implements AuthService {
             authRepository.insertUser(email, name, googleId, picture, emailVerified,provider);
         }
         String token = jwtService.generateToken(email);
+
+        System.out.println("token: " + token);
 
         return TokenResponse.builder()
                 .token(token)

@@ -317,4 +317,20 @@ public interface TaskRepository {
             @Result(property = "username", column = "name"),
     })
     MemberResponseData getTeamLeadData(UUID taskId);
+
+
+    @Select("""
+       SELECT COUNT(*) > 0
+       FROM task_assignments
+       WHERE task_id = #{taskId}
+        AND assigned_to = #{userId}
+    """)
+    boolean isUserAssignedToTask(UUID userId, UUID taskId);
+
+    @Select("""
+        SELECT assigned_to FROM task_assignments
+        WHERE assigned_to = #{userId}
+        AND task_id = #{taskId}
+    """)
+    UUID getLeaderIdByUserIdAndTaskId(UUID userId, UUID taskId);
 }

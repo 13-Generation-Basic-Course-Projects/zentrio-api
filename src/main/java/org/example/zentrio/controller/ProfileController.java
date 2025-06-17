@@ -8,11 +8,16 @@ import lombok.RequiredArgsConstructor;
 import org.example.zentrio.dto.request.ProfileRequest;
 import org.example.zentrio.dto.response.ApiResponse;
 import org.example.zentrio.dto.response.AppUserResponse;
+import org.example.zentrio.model.FileMetadata;
 import org.example.zentrio.service.ProfileService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -77,5 +82,31 @@ public class ProfileController {
 
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
-    
+
+    @Operation(summary = "Update only current users profile",description = "Update only current users profile")
+    @PutMapping(value = "/users/profile-image",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<FileMetadata>> updateCoverOfUserProfile(
+            @RequestParam("file") MultipartFile file) {
+        FileMetadata fileMetadata = profileService.updateProfileCover(file);
+        ApiResponse<FileMetadata> apiResponse = ApiResponse.<FileMetadata>builder()
+                .success(true)
+                .message("Profile cover uploaded successfully")
+                .payload(fileMetadata)
+                .status(HttpStatus.OK)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+
+    }
+
+    @Operation(summary = "Get cover of users",description = "Get cover of current user back")
+    @GetMapping("/preview-image/{file-name}")
+    public ResponseEntity<?> getPreviewCoverOfUser(@PathVariable("file-name") String fileName) throws IOException {
+        InputStream inputStream = profileService.getPreviewCoverOfUser(fileName);
+        byte[] fileContent = inputStream.readAllBytes();
+        return ResponseEntity.status(HttpStatus.OK)
+                .contentType(MediaType.IMAGE_PNG)
+                .body(fileContent);
+    }
+
 }

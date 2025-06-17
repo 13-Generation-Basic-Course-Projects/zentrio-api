@@ -21,6 +21,5 @@ public class Report {
     private Board boardData;
     private List<AllMember> allMembers;
     private String boardName;
-//    private List<TaskRespone> allTasks;
     private List<StageTaskGroup> groupedTasks;
 }
