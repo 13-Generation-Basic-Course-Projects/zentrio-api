@@ -114,7 +114,7 @@ public ResponseEntity<byte[]> generateProjectReport(@PathVariable("board-id") UU
     for (StageTaskGroup group : report.getGroupedTasks()) {
         int checklistCount = 0;
 
-        for (TaskRespone task : group.getTasks()) {
+        for (TaskResponse task : group.getTasks()) {
             if (task.getAllChecklists() != null) {
                 checklistCount += task.getAllChecklists().size();
 
