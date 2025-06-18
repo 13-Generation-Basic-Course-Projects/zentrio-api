@@ -2,6 +2,7 @@ package org.example.zentrio.repository;
 
 import org.apache.ibatis.annotations.*;
 import org.example.zentrio.dto.response.AppUserResponse;
+import org.example.zentrio.dto.response.UserResponse;
 import org.example.zentrio.model.AppUser;
 
 import java.util.UUID;
@@ -92,4 +93,27 @@ public interface AppUserRepository {
             WHERE user_id= #{userId}
         """)
     Void saveGoogleEmailDrive(String email, UUID userId);
+
+
+
+    @Select("""
+        SELECT * FROM users
+        WHERE email = #{email}
+    """)
+    @Results(id = "userResponseMapper",value = {
+            @Result(property = "userId", column = "user_id"),
+            @Result(property = "username", column = "username"),
+            @Result(property = "email", column = "email"),
+            @Result(property = "gender", column = "gender"),
+            @Result(property = "profileImage", column = "profile_image"),
+            @Result(property = "isVerified", column = "is_verified"),
+            @Result(property = "isReset", column = "is_reset"),
+            @Result(property = "createdAt", column = "created_at"),
+            @Result(property = "updatedAt", column = "updated_at"),
+            @Result(property = "googleEmail", column = "google_email"),
+            @Result(property = "position", column = "position"),
+            @Result(property = "location", column = "location"),
+            @Result(property = "contact", column = "contact"),
+    })
+    UserResponse getUserProfileByEmail(String email);
 }

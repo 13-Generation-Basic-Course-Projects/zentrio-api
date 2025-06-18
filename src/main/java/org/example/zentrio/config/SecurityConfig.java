@@ -17,6 +17,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 
+
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -43,6 +44,7 @@ public class SecurityConfig {
                         ).permitAll().requestMatchers("/api/v1/boards/*/invitations/accept").permitAll()
                         .requestMatchers("/api/v1/boards/{board-id}/workspaces/{workspace-id}/invitations/accept").permitAll()
                         .requestMatchers("/api/v1/profiles/profile-image/**").permitAll()
+                        .requestMatchers("api/v1/users/**").permitAll()
                         .requestMatchers("/api/v1/files/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
