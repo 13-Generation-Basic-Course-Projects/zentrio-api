@@ -378,7 +378,6 @@ CREATE TABLE announcement_images (
                                      announcement_images_id  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                                      image_url VARCHAR(255) NOT NULL,
                                      uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                     title VARCHAR(255) NOT NULL ,
                                      announcement_id UUID  REFERENCES announcements(announcement_id) ON DELETE CASCADE ON UPDATE CASCADE,
                                      created_by UUID REFERENCES members(member_id) ON DELETE CASCADE ON UPDATE CASCADE
                                  );
