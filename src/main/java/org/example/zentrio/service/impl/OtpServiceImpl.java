@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class OtpServiceImpl implements OtpService {
 
     private static final int OTP_LENGTH = 6;
-    private static final int OTP_EXPIRATION_MINUTES = 2;
+    private static final int OTP_EXPIRATION_MINUTES = 3;
     private static final String OTP_PREFIX = "otp:";
     private final RedisTemplate<String, String> redisTemplate;
 
