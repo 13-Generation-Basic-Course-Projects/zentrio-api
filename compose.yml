@@ -1,15 +1,15 @@
 services:
-  zentrio-db-develop:
-    image: postgres:latest
-    restart: always
-    environment:
-      POSTGRES_DB: zentrio_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-    volumes:
-      - zentrio-db-data:/var/lib/postgresql/data
-    ports:
-      - "5433:5432"
+#  zentrio-db-develop:
+#    image: postgres:latest
+#    restart: always
+#    environment:
+#      POSTGRES_DB: zentrio_db
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: password
+#    volumes:
+#      - zentrio-db-data:/var/lib/postgresql/data
+#    ports:
+#      - "5433:5432"
 
   zentrio-redis-develop:
     image: redis:latest
@@ -43,15 +43,15 @@ services:
       SPRING_DATA_REDIS_HOST: zentrio-redis-develop
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_DATA_REDIS_PASSWORD: password
-      SPRING_DATASOURCE_URL: jdbc:postgresql://zentrio-db-develop/zentrio_db
+      SPRING_DATASOURCE_URL: jdbc:postgresql://96.9.81.189:6434/zentrio_db
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_DATASOURCE_PASSWORD: Penholder7
     depends_on:
-      - zentrio-db-develop
+#      - zentrio-db-develop
       - zentrio-redis-develop
       - zentrio-minio-develop
 
 volumes:
   zentrio-storage:
-  zentrio-db-data:
+#  zentrio-db-data:
   zentrio-redis-data:
