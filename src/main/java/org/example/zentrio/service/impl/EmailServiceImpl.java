@@ -82,6 +82,9 @@ public class EmailServiceImpl implements EmailService {
                     .queryParam("roleRequest", role.name())
                     .toUriString();
 
+            AppUser user = appUserRepository.getUserByEmail(email);
+            String loginInvitationUrl = "http://localhost:3000/login";
+
             context.setVariable("inviteLink", acceptInvitationUrl);
 
             log.info("Generated invitation URL: {}", acceptInvitationUrl);

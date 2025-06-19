@@ -5,6 +5,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.zentrio.dto.request.*;
 import org.example.zentrio.dto.response.AppUserResponse;
 import org.example.zentrio.dto.response.TokenResponse;
@@ -31,6 +32,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -134,6 +136,10 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void resend(String email, Verification type) {
+
+        log.info("this is type from the fronted{}", type);
+
+
         AppUser appUser = appUserRepository.getUserByEmail(email);
 
         if (appUser == null) {
@@ -179,8 +185,9 @@ public class AuthServiceImpl implements AuthService {
     public TokenResponse loginThirdParty(AuthThirdPartyRequest request) throws GeneralSecurityException, IOException {
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), GsonFactory.getDefaultInstance())
 //                .setAudience(Collections.singletonList("67453975102-v5k4olq9qom0dop0400ika07ntf9lils.apps.googleusercontent.com")) own google id ("Fanau")
-                .setAudience(Collections.singletonList("67453975102-v5k4olq9qom0dop0400ika07ntf9lils.apps.googleusercontent.com"))
+//                .setAudience(Collections.singletonList("67453975102-v5k4olq9qom0dop0400ika07ntf9lils.apps.googleusercontent.com"))
 //                .setAudience(Collections.singleton("555065390048-dcgfpec66hk6e3oqs46nhuqlpg4a8c3f.apps.googleusercontent.com"))
+                .setAudience(Collections.singleton("512720315813-t8pf1ac1rcrsgqamcr1eagmjjaf5ak09.apps.googleusercontent.com"))
                 .build();
 
         System.out.println("token from fronted       " + request.getIdToken());

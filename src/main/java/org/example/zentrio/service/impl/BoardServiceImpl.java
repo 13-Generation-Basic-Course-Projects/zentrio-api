@@ -341,30 +341,30 @@ public class BoardServiceImpl implements BoardService {
     public String acceptBoardInvitation(UUID workspaceId,UUID boardId, String email, RoleRequest roleRequest) {
 
         log.info("acceptBoardInvitation: boardId: {}, email: {}", boardId, email);
-            getBoardByBoardId(boardId);
-            AppUser appUser = appUserRepository.getUserByEmail(email);
-            if (appUser == null) {
-                // If the user is not found, redirect to the login/sign-in page.
-                // Note: This URL is just an example; the actual URL should be
-                // provided dynamically by the frontend.
-                return "http://localhost:3000/login";
-            }
-            UUID userId = appUser.getUserId();
-            UUID roleId = roleRepository.getRoleIdByRoleName(roleRequest.toString());
-            if (roleId == null) {
-                // If the user is not found, redirect to the login/sign-in page.
-                // Note: This URL is just an example; the actual URL should be
-                // provided dynamically by the frontend.
-                return "http://localhost:3000/login";
-            }
+        getBoardByBoardId(boardId);
+        AppUser appUser = appUserRepository.getUserByEmail(email);
+        if (appUser == null) {
+            // If the user is not found, redirect to the login/sign-in page.
+            // Note: This URL is just an example; the actual URL should be
+            // provided dynamically by the frontend.
+            return "http://localhost:3000/login";
+        }
+        UUID userId = appUser.getUserId();
+        UUID roleId = roleRepository.getRoleIdByRoleName(roleRequest.toString());
+        if (roleId == null) {
+            // If the user is not found, redirect to the login/sign-in page.
+            // Note: This URL is just an example; the actual URL should be
+            // provided dynamically by the frontend.
+            return "http://localhost:3000/login";
+        }
         UUID existingMemberId = boardRepository.getMemberIdByUserIdAndBoardId(userId, boardId);
         if (existingMemberId != null) {
             log.info("User {} is already a member of board {}, redirecting to board page", userId, boardId);
             return String.format(
-                    "http://localhost:3000/dashboard/%s/%s/board?role=%s",
+                    "http://localhost:3000/dashboard/%s/%s/board?email=%s",
                     workspaceId,
                     boardId,
-                    URLEncoder.encode(roleRequest.name().toLowerCase(), StandardCharsets.UTF_8)
+                    email
             );
         }
 
@@ -372,15 +372,15 @@ public class BoardServiceImpl implements BoardService {
 
 
         boardRepository.insertMember(userId, boardId, roleId);
-            // If a user is found and is not yet assigned to a board,
-            // upon acceptance, they should be redirected to the board page.
-            // Note: The URL shown here is just an example; the real URL
-            // should be dynamically obtained from the frontend.
+        // If a user is found and is not yet assigned to a board,
+        // upon acceptance, they should be redirected to the board page.
+        // Note: The URL shown here is just an example; the real URL
+        // should be dynamically obtained from the frontend.
         return String.format(
-                "http://localhost:3000/dashboard/%s/%s/board?role=%s",
+                "http://localhost:3000/dashboard/%s/%s/board?email=%s",
                 workspaceId,
                 boardId,
-                URLEncoder.encode(roleRequest.name().toLowerCase(), StandardCharsets.UTF_8)
+                email
         );
     }
 

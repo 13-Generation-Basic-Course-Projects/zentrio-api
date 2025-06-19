@@ -219,10 +219,11 @@ public interface ChecklistRepository {
 
 
     @Select("""
-                SELECT COUNT(*) FROM task_assignments
-                WHERE task_id = #{taskId}
-            """)
+        SELECT COUNT(*) FROM task_assignments
+        WHERE task_id = #{taskId}
+    """)
     int getTaskAssignIdByTaskId(UUID taskId);
+
 
 
 }

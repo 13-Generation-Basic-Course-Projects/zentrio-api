@@ -9,6 +9,8 @@ import org.example.zentrio.dto.request.ProfileRequest;
 import org.example.zentrio.dto.response.ApiResponse;
 import org.example.zentrio.dto.response.AppUserResponse;
 import org.example.zentrio.model.FileMetadata;
+import org.example.zentrio.dto.response.UserResponse;
+import org.example.zentrio.repository.AppUserRepository;
 import org.example.zentrio.service.ProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,6 +30,7 @@ import java.util.UUID;
 @Tag(name = "Profile Controller")
 public class ProfileController {
     private final ProfileService profileService;
+    private final AppUserRepository appUserRepository;
 
     @Operation(summary = "Get user profile", description = "Fetches the details of the currently authenticated user.")
     @GetMapping("/preview-profile")
