@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 import org.example.zentrio.dto.response.ApiResponse;
+import org.example.zentrio.dto.response.DriveFileDTO;
 import org.example.zentrio.dto.response.Res;
 import org.example.zentrio.enums.FileTypes;
 import org.example.zentrio.service.FileUploadService;
@@ -21,6 +22,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/files")
@@ -34,10 +36,10 @@ public class FileUploadDriveController {
 
     @GetMapping("/getFileBy-FolderID")
     @Operation(summary= "Get all files by folder id")
-    public ResponseEntity<ApiResponse<List<File>>> getAllFilesByFolderId(@RequestParam String accessToken,
-                                            @RequestParam String folderId) throws IOException, GeneralSecurityException {
+    public ResponseEntity<ApiResponse<List<DriveFileDTO>>> getAllFilesByFolderId(@RequestParam String accessToken,
+                                                                                 @RequestParam String folderId) throws IOException, GeneralSecurityException {
 
-        ApiResponse<List<File>> response =  ApiResponse.<List<File>>builder()
+        ApiResponse<List<DriveFileDTO>> response =  ApiResponse.<List<DriveFileDTO>>builder()
                 .success(true)
                 .message("file get successfully ")
                 .payload(fileService.getAllFilesByFolderId(accessToken,folderId))
@@ -169,6 +171,12 @@ public class FileUploadDriveController {
                 .build();
         return ResponseEntity.ok(response);
 
+    }
+
+    @GetMapping(value = "/{file-id}/download")
+    @Operation(summary= "Download  file from drive ")
+    public ResponseEntity<?> downloadFileDrive(@PathVariable("file-id") String fileId, @RequestParam String accessToken) {
+        return fileService.downloadFileDrive(fileId, accessToken);
     }
 
 

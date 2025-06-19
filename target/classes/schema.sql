@@ -364,6 +364,7 @@ EXECUTE FUNCTION reorder_checklist_order_after_delete();
 --announcements
 CREATE TABLE announcements (
                                announcement_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                               title varchar(250),
                                text_content TEXT,
                                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                update_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
