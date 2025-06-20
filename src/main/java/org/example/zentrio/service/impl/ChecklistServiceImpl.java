@@ -279,7 +279,7 @@ ChecklistServiceImpl implements ChecklistService {
         );
 
         String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/api/v1/checklists/" + fileName)
+                .path("/api/v1/files/preview-file/" + fileName)
                 .toUriString();
 
         return FileMetadata.builder()
