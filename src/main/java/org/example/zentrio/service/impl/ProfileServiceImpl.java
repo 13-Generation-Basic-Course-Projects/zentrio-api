@@ -56,29 +56,15 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     public AppUserResponse updateProfile(ProfileRequest profileRequest) {
         UUID appUserId = authService.getCurrentAppUserId();
-//        AppUser users = appUserRepository.getUserById(appUserId);
-//        if(profileRequest.getUsername() != null) {
-//            users.setUsername(profileRequest.getUsername());
-//        }
-//        if(profileRequest.getProfileImage() != null) {
-//            users.setUsername(profileRequest.getProfileImage());
-//        }
-//        if(profileRequest.getGender() != null) {
-//            users.setGender(profileRequest.getGender());
-//        }
-//        if(profileRequest.getPosition() != null) {
-//            users.setPosition(profileRequest.getPosition());
-//        }
-//        if(profileRequest.getLocation() != null) {
-//            users.setLocation(profileRequest.getLocation());
-//        }
-//        if(profileRequest.getContact() != null) {
-//            users.setContact(profileRequest.getContact());
-//        }
+        AppUser users = appUserRepository.getUserById(appUserId);
+        if(profileRequest.getProfileImage() != null) {
+            users.setProfileImage(profileRequest.getProfileImage());
+        }
+
 //
 //        // error this upload profile
-//        AppUser appUser = profileRepository.updateProfile(users,appUserId);
-        AppUser appUser = profileRepository.updateProfile(profileRequest,appUserId);
+        AppUser appUser = profileRepository.updateProfile(users,appUserId);
+//        AppUser appUser = profileRepository.updateProfile(profileRequest,appUserId);
         return appUser != null ? modelMapper.map(appUser, AppUserResponse.class) : null;
     }
 

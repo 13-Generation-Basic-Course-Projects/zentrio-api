@@ -36,7 +36,7 @@ public interface ProfileRepository {
                 WHERE user_id = #{appUserId}
                 RETURNING *
             """)
-    AppUser updateProfile(@Param("req") ProfileRequest profileRequest, UUID appUserId);
+    AppUser updateProfile(@Param("req") AppUser user, UUID appUserId);
 
     @ResultMap("profileMapper")
     @Select("""
