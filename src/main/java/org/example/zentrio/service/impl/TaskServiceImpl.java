@@ -22,6 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
+import static org.example.zentrio.enums.Status.OVERDUE;
+
 @Service
 @RequiredArgsConstructor
 public class TaskServiceImpl implements TaskService {
@@ -176,7 +178,14 @@ public class TaskServiceImpl implements TaskService {
         if (tasks.isEmpty()) {
             throw new NotFoundException("Task is empty nothing to updated");
         }
-        return tasks;
+        for (Task task : tasks) {
+            if (task.getFinishedAt().isBefore(LocalDateTime.now())) {
+                taskRepository.updateStatusOfTaskById(task.getTaskId(), OVERDUE.toString());
+            }
+        }
+         return  taskRepository.getAllTasksByBoardIdAndGanttBarId(boardId, ganttBarId);
+
+
 
     }
 

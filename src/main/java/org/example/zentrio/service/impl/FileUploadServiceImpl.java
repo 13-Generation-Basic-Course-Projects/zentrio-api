@@ -6,8 +6,10 @@ import com.google.api.client.http.InputStreamContent;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
+import com.google.api.services.drive.model.Permission;
 import lombok.RequiredArgsConstructor;
 
+import org.example.zentrio.dto.response.DriveFileDTO;
 import org.example.zentrio.dto.response.Res;
 import org.example.zentrio.enums.FileTypes;
 import org.example.zentrio.exception.BadRequestException;
@@ -16,14 +18,23 @@ import org.example.zentrio.model.Document;
 import org.example.zentrio.repository.DocumentRepository;
 import org.example.zentrio.service.FileService;
 import org.example.zentrio.service.FileUploadService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @RequiredArgsConstructor
 @Service
@@ -41,26 +52,69 @@ public class FileUploadServiceImpl implements FileUploadService {
         return document;
     }
 
+    private String getFileExtension(String exportMimeType) {
+        return switch (exportMimeType) {
+            case "application/vnd.openxmlformats-officedocument.wordprocessingml.document" -> ".docx";
+            case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" -> ".xlsx";
+            case "application/vnd.openxmlformats-officedocument.presentationml.presentation" -> ".pptx";
+            case "application/pdf" -> ".pdf";
+            default -> "";
+        };
+    }
+    private String getExportMimeType(String googleMimeType) {
+        return switch (googleMimeType) {
+            case "application/vnd.google-apps.document" -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document"; // .docx
+            case "application/vnd.google-apps.spreadsheet" -> "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"; // .xlsx
+            case "application/vnd.google-apps.presentation" -> "application/vnd.openxmlformats-officedocument.presentationml.presentation"; // .pptx
+            default -> null;
+        };
+    }
+
+
+
+
     @Override
-    public List<File> getAllFilesByFolderId(String accessToken, String folderId) throws IOException, GeneralSecurityException {
+    public List<DriveFileDTO> getAllFilesByFolderId(String accessToken, String folderId) throws IOException, GeneralSecurityException {
 
         Drive drive = documentService.createDriveService(accessToken);
-        validateFolder(folderId);
+        //validateFolder(folderId);
 
-        String query= String.format("'%s' in parents and trashed = false", folderId);
+        List<DriveFileDTO> dtoList = new ArrayList<>();
+        String query = String.format("'%s' in parents and trashed = false", folderId);
 
-        FileList result =drive.files().list()
+        FileList result = drive.files().list()
                 .setQ(query)
-                .setFields("nextPageToken, files(id, name, mimeType, webViewLink)")
+                .setFields("nextPageToken, files(id, name, mimeType, webViewLink, permissions)")
                 .execute();
 
         List<File> files = result.getFiles();
         if (files == null || files.isEmpty()) {
             throw new NotFoundException("No files found");
         }
-        return files;
-    }
 
+        for (File file : files) {
+            boolean isPublic = false;
+            List<Permission> permissions = file.getPermissions();
+
+            if (permissions != null) {
+                for (Permission perm : permissions) {
+                    if ("anyone".equals(perm.getType()) && "reader".equals(perm.getRole())) {
+                        isPublic = true;
+                        break;
+                    }
+                }
+            }
+            dtoList.add(new DriveFileDTO(
+                    file.getId(),
+                    file.getName(),
+                    file.getMimeType(),
+                    file.getWebViewLink(),
+                    isPublic
+            ));
+
+        }
+        return dtoList;
+    }
 
     @Override
     public void deleteFileById(String accessToken, String fileId) throws GeneralSecurityException, IOException {
@@ -108,7 +162,7 @@ public class FileUploadServiceImpl implements FileUploadService {
     public File createDriveFile(String accessToken, String name, FileTypes userInputType, String folderId) throws GeneralSecurityException, IOException {
         // Convert user input to official Google MIME type
         String mimeType = getGoogleMimeType(userInputType.toString());
-        validateFolder(folderId);
+        //validateFolder(folderId);
 
         Drive drive = documentService.createDriveService(accessToken);
         File fileMetadata;
@@ -143,30 +197,14 @@ public class FileUploadServiceImpl implements FileUploadService {
 
     @Override
     public File renameDriveFile(String accessToken, String fileId, String newName) throws GeneralSecurityException, IOException {
-
         Drive drive = documentService.createDriveService(accessToken);
 
-        File fileMetadata;
-        try {
-            fileMetadata = drive.files().get(fileId)
-                    .setFields("id, name, webViewLink, mimeType")
-                    .execute();
-        } catch (GoogleJsonResponseException e) {
-            if (e.getStatusCode() == 404) {
-                throw new NotFoundException("Folder not found with ID: " + fileId);
-            }
-            throw e; // rethrow other unexpected Google exceptions
-        }
-
-        // If it's a folder, don't allow renaming here
-        if ("application/vnd.google-apps.folder".equals(fileMetadata.getMimeType())) {
-            throw new IllegalArgumentException("Cannot rename a folder using this method.");
-        }
-
-        // Proceed to rename the file
+        // Prepare only updatable metadata
+        File fileMetadata = new File();
+        fileMetadata.setName(newName); // ✅ Only send what you're updating
 
         File updatedFile = drive.files().update(fileId, fileMetadata)
-                .setFields("id, name, webViewLink, mimeType")
+                .setFields("id, name, webViewLink, mimeType") // ✅ What you want to *receive* back
                 .execute();
 
         return updatedFile;
@@ -177,7 +215,7 @@ public class FileUploadServiceImpl implements FileUploadService {
     public List<File> getFilesByMimeTypeInFolder(String accessToken, String mimeType, String folderId)
             throws GeneralSecurityException, IOException {
         String type = getGoogleMimeType(mimeType);
-        validateFolder(folderId);
+        //validateFolder(folderId);
         Drive drive = documentService.createDriveService(accessToken);
         File fileMetadata;
         try {
@@ -279,7 +317,7 @@ public class FileUploadServiceImpl implements FileUploadService {
     @Override
     public Res uploadFileToFolderDrive(String accessToken, String folderId, MultipartFile file)
             throws GeneralSecurityException, IOException {
-        validateFolder(folderId);
+        //validateFolder(folderId);
         // Validate file name
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null || !originalFilename.contains(".")) {
@@ -334,9 +372,126 @@ public class FileUploadServiceImpl implements FileUploadService {
         }
     }
 
+    @Override
+
+    public ResponseEntity<?> downloadFileDrive(String fileId, String accessToken) {
+        try {
+            Drive drive = documentService.createDriveService(accessToken);
+
+            File fileMetadata = drive.files().get(fileId)
+                    .setFields("id, name, mimeType")
+                    .setSupportsAllDrives(true)
+                    .execute();
+
+            String mimeType = fileMetadata.getMimeType();
+            String name = fileMetadata.getName();
+
+            if ("application/vnd.google-apps.folder".equals(mimeType)) {
+                // It's a folder → zip it
+                ByteArrayOutputStream zipOutput = new ByteArrayOutputStream();
+                try (ZipOutputStream zipStream = new ZipOutputStream(zipOutput)) {
+                    zipFolderContents(drive, fileId, name + "/", zipStream);
+                }
+
+                String zipFileName = URLEncoder.encode(name + ".zip", StandardCharsets.UTF_8).replace("+", "%20");
+
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + zipFileName)
+                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                        .body(zipOutput.toByteArray());
+            }
+
+            // It's a file → download/export
+            return downloadSingleFile(drive, fileId, fileMetadata);
+
+        } catch (GoogleJsonResponseException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Google Drive error: " + e.getDetails().getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Download failed: " + e.getMessage());
+        }
+    }
 
 
+    private void zipFolderContents(Drive drive, String folderId, String path, ZipOutputStream zipStream) throws IOException {
+        String query = "'" + folderId + "' in parents and trashed = false";
+        FileList fileList = drive.files().list()
+                .setQ(query)
+                .setFields("files(id, name, mimeType)")
+                .setSupportsAllDrives(true)
+                .execute();
 
+        for (File file : fileList.getFiles()) {
+            String fullPath = path + file.getName();
+
+            if ("application/vnd.google-apps.folder".equals(file.getMimeType())) {
+                // Recurse into subfolder
+                zipFolderContents(drive, file.getId(), fullPath + "/", zipStream);
+            } else {
+                ByteArrayOutputStream fileStream = new ByteArrayOutputStream();
+
+                if (file.getMimeType().startsWith("application/vnd.google-apps.")) {
+                    String exportMimeType = getExportMimeType(file.getMimeType());
+                    if (exportMimeType == null) continue;
+
+                    drive.files().export(file.getId(), exportMimeType)
+                            .executeMediaAndDownloadTo(fileStream);
+
+                    fullPath += getFileExtension(exportMimeType);
+                } else {
+                    drive.files().get(file.getId())
+                            .executeMediaAndDownloadTo(fileStream);
+
+                    fullPath += getFileExtension(file.getMimeType());
+                }
+
+                zipStream.putNextEntry(new ZipEntry(fullPath));
+                zipStream.write(fileStream.toByteArray());
+                zipStream.closeEntry();
+            }
+        }
+    }
+
+
+    private ResponseEntity<?> downloadSingleFile(Drive drive, String fileId, File metadata) throws IOException {
+        String mimeType = metadata.getMimeType();
+        String fileName = metadata.getName();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        if (mimeType.startsWith("application/vnd.google-apps.")) {
+            String exportMimeType = getExportMimeType(mimeType);
+            String fileExtension = getFileExtension(exportMimeType);
+
+            if (exportMimeType == null) {
+                return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                        .body("Unsupported Google document type: " + mimeType);
+            }
+
+            drive.files().export(fileId, exportMimeType)
+                    .executeMediaAndDownloadTo(outputStream);
+
+            mimeType = exportMimeType;
+            fileName += fileExtension;
+        } else {
+            drive.files().get(fileId)
+                    .executeMediaAndDownloadTo(outputStream);
+
+            // Add file extension if needed
+            String ext = getFileExtension(mimeType);
+            if (!fileName.toLowerCase().endsWith(ext)) {
+                fileName += ext;
+            }
+        }
+
+        String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+        String contentDisposition = "attachment; filename*=UTF-8''" + encodedFileName;
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
+                .contentType(MediaType.parseMediaType(mimeType))
+                .body(outputStream.toByteArray());
+    }
 
 }
 

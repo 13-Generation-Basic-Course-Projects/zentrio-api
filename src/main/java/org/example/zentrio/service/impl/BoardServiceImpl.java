@@ -226,7 +226,7 @@ public class BoardServiceImpl implements BoardService {
     @SneakyThrows
     @Override
     public FileMetadata uploadBoardImage(UUID boardId, MultipartFile file) {
-        getBoardByBoardId(boardId);
+        System.out.println("file: " + file.getOriginalFilename());
         List<String> imageExtensions = new ArrayList<>();
 
         for (ImageExtension imageExtension : ImageExtension.values()) {
@@ -245,7 +245,6 @@ public class BoardServiceImpl implements BoardService {
 
         String fileName = file.getOriginalFilename();
         fileName = UUID.randomUUID() + "." + StringUtils.getFilenameExtension(fileName);
-        boardRepository.updateCover(boardId, fileName);
 
         minioClient.putObject(
                 PutObjectArgs.builder()
@@ -256,17 +255,19 @@ public class BoardServiceImpl implements BoardService {
                         .build()
         );
 
+
         String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/api/v1/boards/" +boardId+ "/cover/" + fileName)
+                .path("/api/v1/files/preview-file/" + fileName)
                 .toUriString();
 
-
+        boardRepository.updateCover(boardId, fileUrl);
         return FileMetadata.builder()
                 .fileName(fileName)
                 .fileUrl(fileUrl)
                 .fileType(file.getContentType())
                 .fileSize(file.getSize())
                 .build();
+
     }
 
     @SneakyThrows

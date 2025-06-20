@@ -189,7 +189,7 @@ public class AuthServiceImpl implements AuthService {
     public TokenResponse loginThirdParty(AuthThirdPartyRequest request) throws GeneralSecurityException, IOException {
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), GsonFactory.getDefaultInstance())
 //                .setAudience(Collections.singletonList("67453975102-v5k4olq9qom0dop0400ika07ntf9lils.apps.googleusercontent.com")) own google id ("Fanau")
-//                .setAudience(Collections.singletonList("67453975102-v5k4olq9qom0dop0400ika07ntf9lils.apps.googleusercontent.com"))
+                .setAudience(Collections.singletonList("67453975102-v5k4olq9qom0dop0400ika07ntf9lils.apps.googleusercontent.com"))
 //                .setAudience(Collections.singleton("555065390048-dcgfpec66hk6e3oqs46nhuqlpg4a8c3f.apps.googleusercontent.com"))
                 .setAudience(Collections.singleton("512720315813-t8pf1ac1rcrsgqamcr1eagmjjaf5ak09.apps.googleusercontent.com"))
                 .build();
