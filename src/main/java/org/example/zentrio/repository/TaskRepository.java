@@ -256,9 +256,9 @@ public interface TaskRepository {
                     many = @Many(select = "org.example.zentrio.repository.ChecklistRepository.getAllDataInChecklistByTaskId")),
     })
     @Select("""
-        SELECT  * FROM tasks WHERE board_id= #{boardId} 
+        SELECT  * FROM tasks WHERE gantt_bar_id= #{ganttBarId}
         """)
-    List<TaskResponse> getAllDataInTaskByBoardId(UUID boardId);
+    List<TaskResponse> getAllDataInTaskByBoardId(UUID ganttBarId);
 
     @Select("""
                 SELECT * FROM tasks WHERE board_id= #{boardId}

@@ -2,6 +2,7 @@ package org.example.zentrio.repository;
 
 import org.apache.ibatis.annotations.*;
 import org.example.zentrio.dto.request.GanttBarRequest;
+import org.example.zentrio.dto.response.AllGanttBarsReponse;
 import org.example.zentrio.dto.response.MemberResponseData;
 import org.example.zentrio.model.GanttBar;
 
@@ -105,4 +106,21 @@ public interface GanttBarRepository {
     })
     List<MemberResponseData> teamLeadGanttBar(UUID ganttBarId);
 
+
+    @Select("""
+        SELECT * FROM zentrio_db.public.gantt_bars WHERE gantt_chart_id = #{ganttChartId}
+    """)
+    @Results(id = "allGanttBarsMapper", value = {
+            @Result(property = "ganttBarId", column = "gantt_bar_id"),
+            @Result(property = "title", column = "title"),
+            @Result(property = "startedAt", column = "started_at"),
+            @Result(property = "finishedAt", column = "finished_at"),
+            @Result(property = "ganttChartId", column = "gantt_chart_id"),
+            @Result(property = "face", column = "face"),
+            @Result(property = "teamLeader", column = "gantt_bar_id",
+                    many = @Many(select = "teamLeadGanttBar")),
+            @Result(property = "allTasks", column = "gantt_bar_id",
+            many = @Many(select = "org.example.zentrio.repository.TaskRepository.getAllDataInTaskByBoardId"))
+    })
+    List<AllGanttBarsReponse> getAllGanttBarsByGanttChart(UUID ganttChartId);
 }

@@ -2,6 +2,7 @@ package org.example.zentrio.repository;
 
 import org.apache.ibatis.annotations.*;
 import org.example.zentrio.dto.request.GanttChartRequest;
+import org.example.zentrio.dto.response.GanttChartResponse;
 import org.example.zentrio.model.GanttChart;
 
 
@@ -81,4 +82,22 @@ public interface GanttChartRepository {
             """)
     @ResultMap("ganttChartMapper")
     GanttChart getGanttChartByCurrentUser(UUID userId);
+
+    @Select("""
+        SELECT * FROM gantt_charts
+                WHERE board_id = #{boardId}
+    """)
+    @Results(id = "aGanttChartMapper", value = {
+            @Result(property = "ganttChartId", column = "gantt_chart_id"),
+            @Result(property = "title", column = "title"),
+            @Result(property = "createdAt", column = "created_at"),
+            @Result(property = "updatedAt", column = "updated_at"),
+            @Result(property = "boardId", column = "board_id"),
+            @Result(property = "createdBy", column = "created_by"),
+            @Result(property = "allGanttBars", column = "gantt_chart_id",
+                    many = @Many(select = "org.example.zentrio.repository.GanttBarRepository.getAllGanttBarsByGanttChart")
+
+            )
+    })
+    GanttChartResponse gatAGanttChartByBoardId(UUID boardId);
 }

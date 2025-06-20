@@ -386,11 +386,13 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     public BoardResponse getAllDataInBoard(UUID boardId) {
-        UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
-        Boolean memberId= memberRepository.existMemberId(userId, boardId);
-        if (!memberId) {
-            throw new ForbiddenException("You are not member of this board");
-        }
+//        UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+//        Boolean memberId= memberRepository.existMemberId(userId, boardId);
+//        if (!memberId) {
+//            throw new ForbiddenException("You are not member of this board");
+//        }
+//        System.out.println("board Id : " +boardId);
+//        System.out.println("all data from board : "+ boardRepository.getAllDataInBoard(boardId));
         return boardRepository.getAllDataInBoard(boardId);
     }
 

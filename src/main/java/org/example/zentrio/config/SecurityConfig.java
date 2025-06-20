@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/boards/{board-id}/workspaces/{workspace-id}/invitations/accept").permitAll()
                         .requestMatchers("/api/v1/profiles/profile-image/**").permitAll()
                         .requestMatchers("/api/v1/files/**").permitAll()
+                        .requestMatchers("/api/v1/board-guest-role/boards/{board-id}").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthEntrypoint).accessDeniedHandler(jwtAccessDeniedHandler))
