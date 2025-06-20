@@ -56,15 +56,15 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     public AppUserResponse updateProfile(ProfileRequest profileRequest) {
         UUID appUserId = authService.getCurrentAppUserId();
-        AppUser users = appUserRepository.getUserById(appUserId);
-        if(profileRequest.getProfileImage() != null) {
-            users.setProfileImage(profileRequest.getProfileImage());
-        }
+//        AppUser users = appUserRepository.getUserById(appUserId);
+//        if(profileRequest.getProfileImage() != null) {
+//            users.setProfileImage(profileRequest.getProfileImage());
+//        }
 
 //
 //        // error this upload profile
-        AppUser appUser = profileRepository.updateProfile(users,appUserId);
 //        AppUser appUser = profileRepository.updateProfile(profileRequest,appUserId);
+        AppUser appUser = profileRepository.updateProfile(profileRequest,appUserId);
         return appUser != null ? modelMapper.map(appUser, AppUserResponse.class) : null;
     }
 

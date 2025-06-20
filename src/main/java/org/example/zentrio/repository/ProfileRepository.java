@@ -28,7 +28,6 @@ public interface ProfileRepository {
     )
     @Select("""
                 UPDATE users set username = #{req.username},
-                                profile_image = #{req.profileImage},
                                 gender = #{req.gender},
                                 position = #{req.position},
                                 location = #{req.location},
@@ -36,7 +35,7 @@ public interface ProfileRepository {
                 WHERE user_id = #{appUserId}
                 RETURNING *
             """)
-    AppUser updateProfile(@Param("req") AppUser user, UUID appUserId);
+    AppUser updateProfile(@Param("req") ProfileRequest request, UUID appUserId);
 
     @ResultMap("profileMapper")
     @Select("""

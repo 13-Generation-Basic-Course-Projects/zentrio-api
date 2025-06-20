@@ -33,6 +33,6 @@ public class ProfileRequest {
     @NotBlank
     private String contact;
 
-    private String profileImage;
+  //  private String profileImage;
 
 }
