@@ -64,6 +64,7 @@ public interface ChecklistRepository {
 
     @Select("""
                 UPDATE checklists SET title = #{checklistRequest.title},
+                                      description= #{checklistRequest.description},
                                       started_at = #{checklistRequest.startedAt},
                                       finished_at = #{checklistRequest.finishedAt},
                                       updated_at = #{updatedAt}
