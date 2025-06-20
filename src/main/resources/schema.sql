@@ -412,3 +412,5 @@ CREATE TABLE refresh_tokens (
                                 expiry_date TIMESTAMP NOT NULL,
                                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+SELECT * FROM refresh_tokens WHERE token = '1//0eu4AEfPYmPYzCgYIARAAGA4SNwF-L9Ir5uUUol-WIze4hbWlEhSgDmNFOYZVPM9C1VlQ1mlmIOxejZNCIPouDB8_y1H-mggELxQ';

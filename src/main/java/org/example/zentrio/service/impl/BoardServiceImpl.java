@@ -99,11 +99,11 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public Board updateBoardByBoardId(BoardRequest boardRequest, UUID boardId) {
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
-        Board board =  getBoardByBoardId(boardId);
+        Board board = getBoardByBoardId(boardId);
         if (board == null) {
             throw new NotFoundException("Board id " + boardId + " not found");
         }
-        if(!board.getWorkspaceId().equals(boardRequest.getWorkspaceId())) {
+        if (!board.getWorkspaceId().equals(boardRequest.getWorkspaceId())) {
             throw new NotFoundException("workspace id " + boardRequest.getWorkspaceId() + " not found");
         }
         Workspace workspace = workspaceRepository.getWorkspaceByWorkspaceId(boardRequest.getWorkspaceId());
@@ -189,7 +189,7 @@ public class BoardServiceImpl implements BoardService {
             throw new NotFoundException("Assignee ID not found");
         }
 
-        if(assignedRoleRequest.getRoleName() == null){
+        if (assignedRoleRequest.getRoleName() == null) {
             throw new NotFoundException("Role name cannot be null or empty");
         }
 
@@ -295,25 +295,25 @@ public class BoardServiceImpl implements BoardService {
     public void updateIsFavourite(UUID boardId, boolean isFavourite) {
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         Board board = boardRepository.getBoardByBoardId(boardId);
-        if(board == null) {
+        if (board == null) {
             throw new NotFoundException("Board ID " + boardId + " not found");
         }
         boardRepository.updateIsFavourite(boardId, isFavourite);
-        if(isFavourite) {
-            if(!favouriteBoardRepository.existsByUserIdAndBoardId(userId,boardId)){
-                favouriteBoardRepository.insertFavoriteBoard(LocalDateTime.now(),boardId,userId);
+        if (isFavourite) {
+            if (!favouriteBoardRepository.existsByUserIdAndBoardId(userId, boardId)) {
+                favouriteBoardRepository.insertFavoriteBoard(LocalDateTime.now(), boardId, userId);
             }
         }
-        if(!isFavourite) {
-            favouriteBoardRepository.deleteFavoriteBoard(boardId,userId);
+        if (!isFavourite) {
+            favouriteBoardRepository.deleteFavoriteBoard(boardId, userId);
         }
     }
 
     @Override
-    public void inviteMemberToBoard(UUID workspaceId,UUID boardId, List<InviteRequest> inviteRequests) {
+    public void inviteMemberToBoard(UUID workspaceId, UUID boardId, List<InviteRequest> inviteRequests) {
         getBoardByBoardId(boardId);
-        for(InviteRequest inviteRequest : inviteRequests) {
-            emailService.sendInvitations(workspaceId,boardId, inviteRequest.getEmail(),inviteRequest.getRoleName());
+        for (InviteRequest inviteRequest : inviteRequests) {
+            emailService.sendInvitations(workspaceId, boardId, inviteRequest.getEmail(), inviteRequest.getRoleName());
         }
     }
 
@@ -324,7 +324,7 @@ public class BoardServiceImpl implements BoardService {
             throw new NotFoundException("Board id not found");
         }
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
-        return boardRepository.getBoardByIdWithCurrentUserId(boardId,userId);
+        return boardRepository.getBoardByIdWithCurrentUserId(boardId, userId);
     }
 
     @Override
@@ -339,7 +339,7 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public String acceptBoardInvitation(UUID workspaceId,UUID boardId, String email, RoleRequest roleRequest) {
+    public String acceptBoardInvitation(UUID workspaceId, UUID boardId, String email, RoleRequest roleRequest) {
 
         log.info("acceptBoardInvitation: boardId: {}, email: {}", boardId, email);
         getBoardByBoardId(boardId);
@@ -388,7 +388,7 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public BoardResponse getAllDataInBoard(UUID boardId) {
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
-        Boolean memberId= memberRepository.existMemberId(userId, boardId);
+        Boolean memberId = memberRepository.existMemberId(userId, boardId);
         if (!memberId) {
             throw new ForbiddenException("You are not member of this board");
         }
@@ -403,23 +403,35 @@ public class BoardServiceImpl implements BoardService {
         }
         UUID mangerId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         String roleName = roleRepository.getRoleNameByBoardIdAndUserId(boardId, mangerId);
-        if(!roleName.contains(RoleName.ROLE_MANAGER.toString())) {
+        if (!roleName.contains(RoleName.ROLE_MANAGER.toString())) {
             throw new ForbiddenException("You're not a manager of this board can't delete member");
         }
         AppUser user = appUserRepository.getUserById(userId);
-        if(user == null) {
-            throw new NotFoundException("User with ID " +userId + " not found in this board");
+        if (user == null) {
+            throw new NotFoundException("User with ID " + userId + " not found in this board");
         }
-        boardRepository.deletedMember(boardId,userId);
+        boardRepository.deletedMember(boardId, userId);
     }
 
     @Override
     public HashSet<Board> getFavouriteBoardsByUserId(UUID userId) {
         AppUser user = appUserRepository.getUserById(userId);
-        if(user == null) {
+        if (user == null) {
             throw new NotFoundException("User with ID " + userId + " not found in this board");
         }
         return boardRepository.getFavouriteBoardsByUserId(userId);
+    }
+
+    @Override
+    public void leaveBoard(UUID boardId) {
+        UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+        boolean existsUserInBoard = boardRepository.existsUserInBoard(userId, boardId);
+        System.out.println("existsUserInBoard: " + existsUserInBoard);
+        if (!existsUserInBoard) {
+            throw new NotFoundException("Board ID " + boardId + " not belong to this user ID " + userId);
+        }
+        boardRepository.leaveBoard(boardId, userId);
+
     }
 
     public void validateCurrentUserRoles(UUID boardId) {
