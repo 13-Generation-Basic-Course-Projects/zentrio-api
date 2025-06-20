@@ -8,6 +8,7 @@ import org.example.zentrio.dto.request.AssignedRoleRequest;
 import org.example.zentrio.dto.request.BoardRequest;
 import org.example.zentrio.dto.request.InviteRequest;
 import org.example.zentrio.dto.response.ApiResponse;
+import org.example.zentrio.dto.response.BoardAllResponse;
 import org.example.zentrio.dto.response.BoardResponse;
 import org.example.zentrio.dto.response.MemberResponse;
 import org.example.zentrio.enums.ImageExtension;
@@ -385,7 +386,19 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public BoardResponse getAllDataInBoard(UUID boardId) {
+    public BoardResponse getAllDataInBoardForReport(UUID boardId) {
+        UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+        Boolean memberId= memberRepository.existMemberId(userId, boardId);
+        if (!memberId) {
+            throw new ForbiddenException("You are not member of this board");
+        }
+//        System.out.println("board Id : " +boardId);
+//        System.out.println("all data from board : "+ boardRepository.getAllDataInBoard(boardId));
+        return boardRepository.getAllDataInBoardForReport(boardId);
+    }
+
+    @Override
+    public BoardAllResponse getAllDataInBoard(UUID boardId) {
 //        UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
 //        Boolean memberId= memberRepository.existMemberId(userId, boardId);
 //        if (!memberId) {

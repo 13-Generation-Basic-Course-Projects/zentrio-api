@@ -279,7 +279,7 @@ public class BoardController {
         ApiResponse<BoardResponse> apiResponse = ApiResponse.<BoardResponse>builder()
                 .success(true)
                 .message("Get all data from  board successfully")
-                .payload(boardService.getAllDataInBoard(boardId))
+                .payload(boardService.getAllDataInBoardForReport(boardId))
                 .status(HttpStatus.OK)
                 .timestamp(LocalDateTime.now())
                 .build();

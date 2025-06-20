@@ -2,6 +2,7 @@ package org.example.zentrio.repository;
 
 import org.apache.ibatis.annotations.*;
 import org.example.zentrio.dto.request.BoardRequest;
+import org.example.zentrio.dto.response.BoardAllResponse;
 import org.example.zentrio.dto.response.BoardResponse;
 import org.example.zentrio.dto.response.MemberResponse;
 import org.example.zentrio.dto.response.MemberResponseData;
@@ -221,22 +222,22 @@ public interface BoardRepository {
         """)
     Boolean getExistUserInBoard(UUID assigneeId, UUID boardId);
 
-//    @Select("""
-//        SELECT * FROM boards WHERE board_id= #{boardId}
-//        """)
-//    @Results(id = "boarAllDataMapper", value = {
-//            @Result(property = "boardId", column = "board_id"),
-//            @Result(property = "title", column = "title"),
-//            @Result(property = "description", column = "description"),
-//            @Result(property = "cover", column = "cover"),
-//            @Result(property = "createdAt", column = "created_at"),
-//            @Result(property = "updatedAt", column = "updated_at"),
-//            @Result(property = "isFavourite", column = "is_favourite"),
-//            @Result(property = "workspaceId", column = "workspace_id"),
-//            @Result(property = "allTasks", column = "board_id",
-//            many = @Many(select = "org.example.zentrio.repository.TaskRepository.getAllDataInTaskByBoardId"))
-//    })
-//    BoardResponse getAllDataInBoard(UUID boardId);
+    @Select("""
+        SELECT * FROM boards WHERE board_id= #{boardId}
+        """)
+    @Results(id = "boarAllDataForReportMapper", value = {
+            @Result(property = "boardId", column = "board_id"),
+            @Result(property = "title", column = "title"),
+            @Result(property = "description", column = "description"),
+            @Result(property = "cover", column = "cover"),
+            @Result(property = "createdAt", column = "created_at"),
+            @Result(property = "updatedAt", column = "updated_at"),
+            @Result(property = "isFavourite", column = "is_favourite"),
+            @Result(property = "workspaceId", column = "workspace_id"),
+            @Result(property = "allTasks", column = "board_id",
+            many = @Many(select = "org.example.zentrio.repository.TaskRepository.getAllDataInTaskByBoardId"))
+    })
+    BoardResponse getAllDataInBoardForReport(UUID boardId);
 
     @Select("""
         SELECT * FROM boards WHERE board_id= #{boardId}
@@ -253,7 +254,7 @@ public interface BoardRepository {
             @Result(property = "ganttChart", column = "board_id",
                     one = @One(select = "org.example.zentrio.repository.GanttChartRepository.gatAGanttChartByBoardId"))
     })
-    BoardResponse getAllDataInBoard(UUID boardId);
+    BoardAllResponse getAllDataInBoard(UUID boardId);
 
     @Select("""
         DELETE FROM members m

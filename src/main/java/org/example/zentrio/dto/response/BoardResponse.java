@@ -22,6 +22,6 @@ public class BoardResponse {
     private LocalDateTime updatedAt;
     private Boolean isFavourite;
     private UUID workspaceId;
-//    private List<TaskResponse> allTasks;
-    private GanttChartResponse ganttChart;
+    private List<TaskResponse> allTasks;
+//    private GanttChartResponse ganttChart;
 }
