@@ -5,6 +5,7 @@ import org.example.zentrio.dto.request.AchievementRequest;
 import org.example.zentrio.dto.response.AchievementResponse;
 import org.example.zentrio.model.Achievement;
 
+import java.util.Map;
 import java.util.UUID;
 
 public interface AchievementService {
@@ -18,5 +19,5 @@ public interface AchievementService {
 
     AchievementResponse getAchievementByUserId(UUID userId);
 
-    Achievement getMyAchievement();
+    Map<String, Object> getMyAchievement();
 }

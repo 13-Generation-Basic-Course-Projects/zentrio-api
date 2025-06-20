@@ -59,6 +59,12 @@ public interface TaskRepository {
     HashSet<Task> getAllTasksByBoardIdAndGanttBarId(UUID boardId, UUID ganttBarId);
 
     @Select("""
+                SELECT * FROM tasks WHERE board_id  = #{boardId}
+            """)
+    @ResultMap("taskMapper")
+    List<Task> getAllTasksByBoard(UUID boardId);
+
+    @Select("""
                 UPDATE tasks SET
                                  title = #{request.title},
                                  description = #{request.description},
