@@ -129,6 +129,9 @@ public class NotificationServiceImpl implements NotificationService {
 
     }
 
+
+
+
     @Override
     public HashSet<Notification> getNotificationsForUser(UUID userId) {
         AppUser user = appUserRepository.getUserById(userId);
@@ -153,6 +156,10 @@ public class NotificationServiceImpl implements NotificationService {
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         notificationRepository.deleteAllNotifications(userId);
     }
+
+
+
+
 
     private String buildJsonBodyForAllUsers(String message) throws JsonProcessingException {
         Map<String, Object> body = new HashMap<>();

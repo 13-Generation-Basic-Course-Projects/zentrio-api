@@ -404,3 +404,11 @@ CREATE TABLE favorite_boards (
                                  UNIQUE (user_id, board_id)
 );
 
+
+CREATE TABLE refresh_tokens (
+                                id UUID PRIMARY KEY,
+                                user_id UUID REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+                                token TEXT NOT NULL,
+                                expiry_date TIMESTAMP NOT NULL,
+                                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

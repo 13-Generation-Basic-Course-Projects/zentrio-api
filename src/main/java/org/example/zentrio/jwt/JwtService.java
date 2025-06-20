@@ -2,12 +2,14 @@ package org.example.zentrio.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.example.zentrio.model.AppUser;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 
@@ -83,5 +85,14 @@ public class JwtService {
     public Boolean validateToken(String token, AppUser appUser) {
         final String email = extractEmail(token);
         return ((email.equals(appUser.getEmail())) && !isTokenExpired(token));
+    }
+
+    public String generateAccessToken(UUID userId) {
+        return Jwts.builder()
+                .setSubject(userId.toString())
+                .setIssuedAt(new Date())
+                .setExpiration(Date.from(Instant.now().plusSeconds(60*15)))
+                .signWith(SignatureAlgorithm.HS512, SECRET)
+                .compact();
     }
 }
