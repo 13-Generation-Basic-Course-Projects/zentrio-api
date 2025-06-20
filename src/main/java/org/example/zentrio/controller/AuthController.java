@@ -28,6 +28,7 @@ import java.util.Objects;
 public class AuthController {
 
     private final AuthService authService;
+    private final RefreshTokenService refreshTokenService;
 
     @Operation(summary = "Register a user", description = "Register user with credential")
     @PostMapping("/register")
