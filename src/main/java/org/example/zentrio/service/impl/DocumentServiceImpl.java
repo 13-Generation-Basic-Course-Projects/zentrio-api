@@ -226,6 +226,21 @@ public class DocumentServiceImpl implements DocumentService {
                 .setSendNotificationEmail(false)
                 .setSupportsAllDrives(true)
                 .execute();
+        // Share all files inside the folder
+        String query = "'" + folderId + "' in parents and trashed = false";
+        FileList fileList = drive.files().list()
+                .setQ(query)
+                .setFields("files(id, name)")
+                .setSupportsAllDrives(true)
+                .execute();
+
+        for (File file : fileList.getFiles()) {
+            drive.permissions().create(file.getId(), permission)
+                    .setSendNotificationEmail(false)
+                    .setSupportsAllDrives(true)
+                    .execute();
+        }
+
         documentRepository.publicFolder(userId(), documentId, true);
         return "Folder shared successfully with: " + folder.getWebViewLink();
     }
@@ -405,6 +420,7 @@ public class DocumentServiceImpl implements DocumentService {
         }
     }
 
+
     @Override
     public String privateDocument(UUID documentId, String accessToken) throws GeneralSecurityException, IOException {
         Document document = getDocumentById(documentId);
@@ -440,6 +456,7 @@ public class DocumentServiceImpl implements DocumentService {
 
         return "Folder access restricted successfully: " + folder.getWebViewLink();
     }
+
 
     @Override
     public ResponseEntity<?> downloadDocument(UUID documentId, String accessToken) {

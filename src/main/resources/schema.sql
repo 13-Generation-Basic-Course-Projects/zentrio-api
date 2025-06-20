@@ -364,6 +364,7 @@ EXECUTE FUNCTION reorder_checklist_order_after_delete();
 --announcements
 CREATE TABLE announcements (
                                announcement_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                               title varchar(250),
                                text_content TEXT,
                                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                update_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -377,7 +378,6 @@ CREATE TABLE announcement_images (
                                      announcement_images_id  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                                      image_url VARCHAR(255) NOT NULL,
                                      uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                     title VARCHAR(255) NOT NULL ,
                                      announcement_id UUID  REFERENCES announcements(announcement_id) ON DELETE CASCADE ON UPDATE CASCADE,
                                      created_by UUID REFERENCES members(member_id) ON DELETE CASCADE ON UPDATE CASCADE
                                  );
@@ -404,3 +404,13 @@ CREATE TABLE favorite_boards (
                                  UNIQUE (user_id, board_id)
 );
 
+
+CREATE TABLE refresh_tokens (
+                                id UUID PRIMARY KEY,
+                                user_id UUID REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+                                token TEXT NOT NULL,
+                                expiry_date TIMESTAMP NOT NULL,
+                                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+SELECT * FROM refresh_tokens WHERE token = '1//0eu4AEfPYmPYzCgYIARAAGA4SNwF-L9Ir5uUUol-WIze4hbWlEhSgDmNFOYZVPM9C1VlQ1mlmIOxejZNCIPouDB8_y1H-mggELxQ';

@@ -318,4 +318,22 @@ public class BoardController {
 
     }
 
+
+    @Operation(summary = "Leave a board by ID",description = "Leaving a board with a board ID and user ID")
+    @DeleteMapping("/{board-id}")
+    public ResponseEntity<?> leaveBoardByBoardIdAndUserId(
+            @PathVariable("board-id") UUID boardId) {
+        boardService.leaveBoard(boardId);
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .success(true)
+                .message("Leave a board by ID and user ID successfully")
+                .status(HttpStatus.OK)
+                .payload(null)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+
+
 }
