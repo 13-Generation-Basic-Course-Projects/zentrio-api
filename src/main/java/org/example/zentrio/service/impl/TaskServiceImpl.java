@@ -274,9 +274,7 @@ public class TaskServiceImpl implements TaskService {
     public void assignLeaderToTask(UUID taskId, UUID assigneeId) {
 
         Task task = getTaskById(taskId);
-
-
-        validateCurrentUserRoles(task.getBoardId());
+//        validateCurrentUserRoles(task.getBoardId());
         if (taskRepository.isAlreadyAssigned(taskId)) {
             throw new ConflictException("Task's with ID " + taskId + " is already assigned Leader");
         }
