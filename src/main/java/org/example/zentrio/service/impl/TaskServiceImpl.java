@@ -360,6 +360,10 @@ public class TaskServiceImpl implements TaskService {
                 if (!"IN_PROGRESS".equals(currentStage)) {
                     throw new BadRequestException("Task must be IN_PROGRESS to move to UNDER_REVIEW.");
                 }
+                long incompleteChecklistCountInUnderReview = checklistRepository.countIncompleteByTaskId(taskId);
+                if (incompleteChecklistCountInUnderReview > 0) {
+                    throw new BadRequestException("Cannot move to COMPLETED until all checklist items are done.");
+                }
                 break;
 
             case "COMPLETED":
