@@ -24,7 +24,6 @@ public class CalendarRequest {
 
     private LocalDateTime startDate;
 
-    @FutureOrPresent
     private LocalDateTime tillDate;
 
     @NotNull

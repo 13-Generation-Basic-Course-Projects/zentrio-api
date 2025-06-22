@@ -12,6 +12,7 @@ import org.example.zentrio.service.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.UUID;
@@ -27,40 +28,46 @@ public class CalendarServiceImpl implements CalendarService {
     private final TaskService taskService;
     private final MemberRepository memberRepository;
 
-    UUID userId(){
+    UUID userId() {
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         return userId;
     }
 
-
+    // update update
     private void validateNoteWithTask(CalendarRequest calendarRequest, Task task) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startDate = calendarRequest.getStartDate();
+        LocalDateTime tillDate = calendarRequest.getTillDate();
+        LocalDateTime taskStart = task.getStartedAt();
+        LocalDateTime taskEnd = task.getFinishedAt();
 
-
-
-            // Checklist finish time must be the same or after start time
-            if (calendarRequest.getTillDate().isBefore(calendarRequest.getStartDate())) {
-                throw new BadRequestException("Task finish time cannot be before start time.");
-            }
-
-            // Checklist finish time must not exceed Task's finish time
-            if (calendarRequest.getTillDate().isAfter(task.getFinishedAt())) {
-                throw new BadRequestException("Task finish time cannot exceed Task's finish time.");
-            }
-
-//        // Checklist start time must not be before Task's start time
-            if (calendarRequest.getStartDate().isBefore(task.getStartedAt())) {
-                throw new BadRequestException("Task start time cannot be before Task's start time.");
-            }
+        // Start time must not be before task's start time
+        if (startDate.isBefore(taskStart)) {
+            throw new BadRequestException("Start time cannot be before task's start time.");
         }
+
+        // Allow any time on the same day as taskEnd
+        LocalDate taskEndDate = taskEnd.toLocalDate();
+        LocalDate tillDateDate = tillDate.toLocalDate();
+
+        if (tillDateDate.isAfter(taskEndDate)) {
+            throw new BadRequestException("Finish time cannot exceed task's finish date.");
+        }
+
+        // Optional: Uncomment if you want to enforce chronological order
+        if (tillDate.isBefore(startDate)) {
+            throw new BadRequestException("Finish time cannot be before start time.");
+        }
+    }
+
+
 
 
 
     @Override
     public HashSet<Task> getCalendarForCurrentUser(UUID boardId) {
         boardService.getBoardByBoardId(boardId);
-        HashSet<Task>  calendar=new HashSet<>(calendarRepository.getCalendarTasksForUser(userId(), boardId))  ;
-        if (calendar.isEmpty()){
+        HashSet<Task> calendar = new HashSet<>(calendarRepository.getCalendarTasksForUser(userId(), boardId));
+        if (calendar.isEmpty()) {
             throw new NotFoundException("No calendar found for userId: " + userId());
 
         }
@@ -69,18 +76,18 @@ public class CalendarServiceImpl implements CalendarService {
     }
 
     @Override
-    public Calendar CreateNoteInCalendar( CalendarRequest calendarRequest) {
-    Task   task= taskService.getTaskById(calendarRequest.getTaskId());
-        validateNoteWithTask(calendarRequest,task);
-    Calendar calendar= calendarRepository.createCalendar(calendarRequest,LocalDateTime.now(), userId());
+    public Calendar CreateNoteInCalendar(CalendarRequest calendarRequest) {
+        Task task = taskService.getTaskById(calendarRequest.getTaskId());
+        validateNoteWithTask(calendarRequest, task);
+        Calendar calendar = calendarRepository.createCalendar(calendarRequest, LocalDateTime.now(), userId());
 
         return calendar;
     }
 
     @Override
     public Calendar getCalendarById(UUID notedId) {
-        Calendar  calendar= calendarRepository.getCalendarById(notedId);
-        if (calendar == null){
+        Calendar calendar = calendarRepository.getCalendarById(notedId);
+        if (calendar == null) {
             throw new NotFoundException("No calendar found for userId: " + userId());
         }
         return calendar;
@@ -88,9 +95,9 @@ public class CalendarServiceImpl implements CalendarService {
 
     @Override
     public HashSet<Calendar> getAllCalendarByTaskId(UUID taskId) {
-          taskService.getTaskById(taskId);
-        HashSet<Calendar> calendars= new HashSet<>(calendarRepository.getAllNoteByTaskId(taskId,userId()));
-        if (calendars.isEmpty()){
+        taskService.getTaskById(taskId);
+        HashSet<Calendar> calendars = new HashSet<>(calendarRepository.getAllNoteByTaskId(taskId, userId()));
+        if (calendars.isEmpty()) {
             throw new NotFoundException("No calendar found for userId: " + userId());
         }
         return calendars;
@@ -98,17 +105,17 @@ public class CalendarServiceImpl implements CalendarService {
 
     @Override
     public Calendar UpdateCalendarByNoteId(UUID noteId, CalendarRequest calendarRequest) {
-      Calendar calendar=  getCalendarById(noteId);
-      if (calendar == null){
-          throw new NotFoundException("No calendar found for userId: " + userId());
-      }
-      Task  task= taskService.getTaskById(calendarRequest.getTaskId());
-      validateNoteWithTask(calendarRequest,task);
+        Calendar calendar = getCalendarById(noteId);
+        if (calendar == null) {
+            throw new NotFoundException("No calendar found for userId: " + userId());
+        }
+        Task task = taskService.getTaskById(calendarRequest.getTaskId());
+        validateNoteWithTask(calendarRequest, task);
 
-        Calendar calendarUpdate= calendarRepository.UpdateCalendarByNoteId(calendarRequest,noteId, userId());
-            if (calendarUpdate == null){
-                throw new NotFoundException("No calendar updated for userId: " + userId());
-            }
+        Calendar calendarUpdate = calendarRepository.UpdateCalendarByNoteId(calendarRequest, noteId, userId());
+        if (calendarUpdate == null) {
+            throw new NotFoundException("No calendar updated for userId: " + userId());
+        }
 
         return calendarUpdate;
     }
@@ -123,7 +130,7 @@ public class CalendarServiceImpl implements CalendarService {
         if (!calendar.getUserId().equals(userId())) {
             throw new ForbiddenException("You are not allowed to delete this calendar");
         }
-      calendarRepository.deleteCalendarByNoteId(noteId, taskId,userId());
+        calendarRepository.deleteCalendarByNoteId(noteId, taskId, userId());
 
         return null;
     }
