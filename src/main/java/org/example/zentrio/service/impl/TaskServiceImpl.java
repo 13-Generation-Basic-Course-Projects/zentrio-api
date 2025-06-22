@@ -366,8 +366,8 @@ public class TaskServiceImpl implements TaskService {
 
             case "COMPLETED":
                 if (!isManager) {
-                    UUID taskLeaderId = taskRepository.getLeaderIdByUserIdAndTaskId(currentUserId, taskId);
-                    if (!currentUserId.equals(taskLeaderId)) {
+                    UUID taskLeaderId = taskRepository.getLeaderIdByUserIdAndBoardId(currentUserId, boardId);
+                    if (!taskLeaderId.equals(leaderIdInMember)) {
                         throw new ForbiddenException("Only the task leader can move the task to COMPLETED.");
                     }
                 }
