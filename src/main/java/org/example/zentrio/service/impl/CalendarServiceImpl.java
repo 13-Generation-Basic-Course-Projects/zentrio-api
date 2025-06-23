@@ -34,7 +34,7 @@ public class CalendarServiceImpl implements CalendarService {
 
 
     private void validateNoteWithTask(CalendarRequest calendarRequest, Task task) {
-        LocalDateTime now = LocalDateTime.now();
+//        LocalDateTime now = LocalDateTime.now();
 
 
 
@@ -70,6 +70,22 @@ public class CalendarServiceImpl implements CalendarService {
 
     @Override
     public Calendar CreateNoteInCalendar( CalendarRequest calendarRequest) {
+
+//        LocalDateTime now = LocalDateTime.now();
+
+        LocalDateTime updatedStartedTime = calendarRequest.getStartDate().withHour(00)
+                .withMinute(00)
+                .withSecond(00)
+                .withNano(000_000_000);
+
+        LocalDateTime updatedFinishedTime = calendarRequest.getTillDate().withHour(23)
+                .withMinute(00)
+                .withSecond(00)
+                .withNano(000_000_000);
+
+        calendarRequest.setStartDate(updatedStartedTime);
+        calendarRequest.setTillDate(updatedFinishedTime);
+
     Task   task= taskService.getTaskById(calendarRequest.getTaskId());
         validateNoteWithTask(calendarRequest,task);
     Calendar calendar= calendarRepository.createCalendar(calendarRequest,LocalDateTime.now(), userId());

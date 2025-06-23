@@ -25,10 +25,10 @@ public class TaskRequest {
 //    @NotBlank
     private String description;
 
-    @FutureOrPresent
+//    @FutureOrPresent
     private LocalDateTime startedAt;
 
-    @FutureOrPresent
+//    @FutureOrPresent
     private LocalDateTime finishedAt;
 
     @NotNull

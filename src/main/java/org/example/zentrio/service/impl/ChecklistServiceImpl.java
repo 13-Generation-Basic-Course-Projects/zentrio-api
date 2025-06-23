@@ -46,12 +46,12 @@ ChecklistServiceImpl implements ChecklistService {
 
 
     private void validateChecklistWithTaskTime(ChecklistRequest checklistRequest, Task task) {
-        LocalDateTime now = LocalDateTime.now();
+//        LocalDateTime now = LocalDateTime.now();
 
         //  Checklist start time cannot be in the past
-        if (checklistRequest.getStartedAt().isBefore(now)) {
-            throw new BadRequestException("Checklist start time cannot be in the past.");
-        }
+//        if (checklistRequest.getStartedAt().isBefore(now)) {
+//            throw new BadRequestException("Checklist start time cannot be in the past.");
+//        }
 
         // Checklist finish time must be the same or after start time
         if (checklistRequest.getFinishedAt().isBefore(checklistRequest.getStartedAt())) {
@@ -136,6 +136,22 @@ ChecklistServiceImpl implements ChecklistService {
 
     @Override
     public Checklist createChecklist(ChecklistRequest checklistRequest) {
+
+//        LocalDateTime now = LocalDateTime.now();
+
+        LocalDateTime updatedStartedTime = checklistRequest.getStartedAt().withHour(00)
+                .withMinute(00)
+                .withSecond(00)
+                .withNano(000_000_000);
+
+        LocalDateTime updatedFinishedTime = checklistRequest.getFinishedAt().withHour(23)
+                .withMinute(00)
+                .withSecond(00)
+                .withNano(000_000_000);
+
+        checklistRequest.setStartedAt(updatedStartedTime);
+        checklistRequest.setFinishedAt(updatedFinishedTime);
+
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         Task task = taskService.getTaskById(checklistRequest.getTaskId());
         validateChecklistAccess(checklistRequest.getTaskId(), task.getBoardId(), userId);

@@ -26,11 +26,11 @@ public class GanttBarRequest {
     private String title;
 
     @NotNull
-    @FutureOrPresent
+//    @FutureOrPresent
     private LocalDateTime startedAt;
 
     @NotNull
-    @FutureOrPresent
+//    @FutureOrPresent
     private LocalDateTime finishedAt;
 
     @NotNull

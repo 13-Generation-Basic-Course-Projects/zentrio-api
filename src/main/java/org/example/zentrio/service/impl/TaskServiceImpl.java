@@ -40,12 +40,13 @@ public class TaskServiceImpl implements TaskService {
 
 
     private void validateTaskTimeWithGanttBar(TaskRequest taskRequest, GanttBar ganttBar) {
-        LocalDateTime now = LocalDateTime.now();
+//        LocalDateTime now = LocalDateTime.now();
+
 
         //  Task start time cannot be in the past
-        if (taskRequest.getStartedAt().isBefore(now)) {
-            throw new BadRequestException("Task start time cannot be in the past.");
-        }
+//        if (taskRequest.getStartedAt().isBefore(now)) {
+//            throw new BadRequestException("Task start time cannot be in the past.");
+//        }
 
         //  Task finish time must be after start time
         if (taskRequest.getFinishedAt().isBefore(taskRequest.getStartedAt())) {
@@ -119,6 +120,22 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Task createTaskByBoardIdAndGanttBarId(TaskRequest taskRequest) {
+
+//        LocalDateTime now = LocalDateTime.now();
+
+        LocalDateTime updatedStartedTime = taskRequest.getStartedAt().withHour(00)
+                .withMinute(00)
+                .withSecond(00)
+                .withNano(000_000_000);
+
+        LocalDateTime updatedFinishedTime = taskRequest.getFinishedAt().withHour(23)
+                .withMinute(00)
+                .withSecond(00)
+                .withNano(000_000_000);
+
+        taskRequest.setStartedAt(updatedStartedTime);
+        taskRequest.setFinishedAt(updatedFinishedTime);
+
         Board board = boardRepository.getBoardByBoardId(taskRequest.getBoardId());
         if (board == null) {
             throw new NotFoundException("Board with ID " + taskRequest.getBoardId() + " not found");

@@ -1,135 +1,124 @@
-
-
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your OTP Code</title>
+    <title>Verify Your Email</title>
     <style>
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f7f9fc;
             margin: 0;
             padding: 0;
+            background: url('https://i.imgur.com/example-background.jpg') no-repeat center center fixed;
+            background-size: cover;
             line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
-
         .email-wrapper {
             max-width: 640px;
-            margin: 40px auto;
-            background-color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.9);
             border-radius: 16px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             padding: 48px 32px;
-        }
-
-        .header {
             text-align: center;
-            margin-bottom: 32px;
         }
-
+        .header {
+            margin-bottom: 32px;
+            text-align: left;
+        }
         .logo {
-            display: block;
-            margin: 0 auto;
+            display: inline-block;
             width: 120px;
             height: auto;
         }
-
+        .verify-image {
+            margin-bottom: 16px;
+            max-width: 100%;
+            height: auto;
+        }
         .heading {
             font-size: 28px;
             font-weight: 700;
             color: #1a202c;
             margin: 16px 0 8px;
         }
-
         .subheading {
             font-size: 16px;
-            color: #4a5568;
+            color: #808080;
             margin: 0;
         }
-
+        .special-subheading {
+            font-size: 16px;
+            color: #59BAD5;
+            margin: 0;
+        }
         .otp-container {
-            text-align: center;
             margin: 32px 0;
         }
-
         .otp-box {
             display: inline-block;
-            background: linear-gradient(165deg, #e6fffa 45%, #e8f0fe 50%);
             border: 1px solid #e2e8f0;
-            color: #0000FF;
+            color: #59BAD5;
             font-size: 40px;
             font-weight: 800;
             letter-spacing: 8px;
             padding: 24px 32px;
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(5px);
         }
-
         .info-text {
             font-size: 14px;
             color: #4a5568;
-            text-align: center;
             margin: 0 16px 32px;
         }
-
         .info-text strong {
             color: #2d3748;
         }
-
         .action-text {
             font-size: 14px;
             color: #4a5568;
-            text-align: center;
             margin-bottom: 32px;
         }
-
         .action-text a {
             color: #3182ce;
             text-decoration: none;
             font-weight: 600;
         }
-
         .action-text a:hover {
             text-decoration: underline;
         }
-
         .footer {
             font-size: 12px;
             color: #a0aec0;
-            text-align: center;
             border-top: 1px solid #edf2f7;
             padding-top: 24px;
             margin-top: 32px;
         }
-
         .footer a {
             color: #3182ce;
             text-decoration: none;
         }
-
         .footer a:hover {
             text-decoration: underline;
         }
-
         @media only screen and (max-width: 600px) {
             .email-wrapper {
                 padding: 32px 24px;
                 margin: 24px 16px;
             }
-
             .heading {
                 font-size: 24px;
             }
-
             .otp-box {
                 font-size: 32px;
                 letter-spacing: 6px;
                 padding: 16px 24px;
             }
-
             .logo {
                 width: 100px;
             }
@@ -139,25 +128,19 @@
 <body>
 <div class="email-wrapper">
     <div class="header">
-        <!--    <img class="logo" src="https://i.imgur.com/7qYpZ3Z.png" alt="Zentrio Logo">-->
-        <h1 class="heading">Verify Your Account</h1>
-        <p class="subheading">Use the secure OTP below to complete your verification</p>
+        <img class="logo" src="src/assets/zentrio-logo.png" alt="Zentrio Logo">
     </div>
-
     <div class="otp-container">
-        <div class="otp-box" th:text="${otp}">123456</div>
+        <img class="verify-image" src="src/assets/verify-otp.jpg" alt="Verify OTP">
+        <h1 class="heading">Welcome to Zentrio</h1>
+        <h2 class="special-subheading">You're One Step Away</h2>
+        <p class="subheading">To complete your registration, verify your email address by using this secure OTP below!</p>
+        <div class="otp-box">123456</div>
+        <p class="info-text">Note: This code will expire in 3 minutes.</p>
+        <p class="action-text">Have a question? <a href="https://zentriokshrd.com">Reach out to our team</a></p>
     </div>
-
-    <p class="info-text">
-        This code will expire in <strong>5 minutes</strong> for your security. Please do not share it with anyone.
-    </p>
-
-    <p class="action-text">
-        Having trouble? <a href="https://zentriokshrd.com">Contact our support team</a> for assistance.
-    </p>
-
     <div class="footer">
-        &copy; 2025 Zentrio. All rights reserved.<br>
+        © 2025 Zentrio. All rights reserved.<br>
         <a href="https://zentriokshrd.com/privacy">Privacy Policy</a> |
         <a href="https://zentriokshrd.com/terms">Terms of Service</a>
     </div>
