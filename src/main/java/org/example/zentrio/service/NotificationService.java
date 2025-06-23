@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.example.zentrio.model.Notification;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
 
 public interface NotificationService {
@@ -16,4 +17,7 @@ public interface NotificationService {
     void deleteNotificationByUserId(UUID notificationId);
 
     void deleteAllNotifications();
+
+
+    Notification sendNotifications(String message, List<UUID> userIds);
 }

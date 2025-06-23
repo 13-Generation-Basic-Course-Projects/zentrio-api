@@ -16,6 +16,7 @@ import org.example.zentrio.service.TaskService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -157,6 +158,83 @@ public class NotificationServiceImpl implements NotificationService {
         notificationRepository.deleteAllNotifications(userId);
     }
 
+    @Override
+    public Notification sendNotifications(String message, List<UUID> userIds) {
+        try {
+            String jsonBody;
+            boolean isBroadcast = (userIds == null || userIds.isEmpty());
+
+            // Prepare request to OneSignal
+            if (isBroadcast) {
+                jsonBody = buildJsonBodyForAllUsers(message);
+            } else {
+                // Send individually to each user (OneSignal prefers this unless you're using include_aliases with many)
+                for (UUID uid : userIds) {
+                    String userJson = buildJsonBodyForSingleUser(message, uid.toString());
+
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setContentType(MediaType.APPLICATION_JSON);
+                    headers.set("Authorization", "Basic " + REST_API_KEY);
+
+                    HttpEntity<String> request = new HttpEntity<>(userJson, headers);
+                    restTemplate.postForEntity("https://onesignal.com/api/v1/notifications", request, String.class);
+
+                    // Store in database
+                    Notification notification = new Notification();
+                    notification.setNotificationId(UUID.randomUUID());
+                    notification.setContent(stripQuotes(message));
+                    notification.setType("IN APP");
+                    notification.setIsRead(false);
+                    notification.setCreatedAt(LocalDateTime.now());
+
+                    UUID senderId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+                    notification.setSenderId(senderId);
+                    notification.setReceiverId(uid);
+
+                    notificationRepository.insertNotification(notification);
+                }
+
+                // Return the last notification (or modify to return a list if you prefer)
+                Notification last = new Notification();
+                last.setContent(message);
+                return last;
+            }
+
+            // For broadcast (all users)
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", "Basic " + REST_API_KEY);
+            HttpEntity<String> request = new HttpEntity<>(jsonBody, headers);
+            restTemplate.postForEntity("https://onesignal.com/api/v1/notifications", request, String.class);
+
+            // Save one sample notification record (no specific receiver)
+            Notification broadcastNotification = new Notification();
+            broadcastNotification.setNotificationId(UUID.randomUUID());
+            broadcastNotification.setContent(stripQuotes(message));
+            broadcastNotification.setType("IN APP");
+            broadcastNotification.setIsRead(false);
+            broadcastNotification.setCreatedAt(LocalDateTime.now());
+            UUID senderId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+            broadcastNotification.setSenderId(senderId);
+            broadcastNotification.setReceiverId(null); // or a special system UUID
+            notificationRepository.insertNotification(broadcastNotification);
+
+            return broadcastNotification;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+
+    private String stripQuotes(String input) {
+        if (input != null && input.startsWith("\"") && input.endsWith("\"")) {
+            return input.substring(1, input.length() - 1);
+        }
+        return input;
+    }
 
 
 

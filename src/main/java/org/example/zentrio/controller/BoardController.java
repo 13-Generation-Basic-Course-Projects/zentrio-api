@@ -125,7 +125,7 @@ public class BoardController {
     }
 
     @Operation(summary = "Upload cover by board ID", description = "Upload board cover by specific board ID")
-    @PostMapping(value = "/{board-id}/cover/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/{board-id}/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<FileMetadata>> uploadCoverByBoardId(
             @PathVariable("board-id") UUID boardId,
             @RequestParam("file") MultipartFile file) {

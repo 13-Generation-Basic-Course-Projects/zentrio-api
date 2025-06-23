@@ -39,6 +39,7 @@ public class TaskServiceImpl implements TaskService {
     private final GanttChartService ganttChartService;
 
 
+    // need to validate the task with gantt bars
     private void validateTaskTimeWithGanttBar(TaskRequest taskRequest, GanttBar ganttBar) {
 //        LocalDateTime now = LocalDateTime.now();
 

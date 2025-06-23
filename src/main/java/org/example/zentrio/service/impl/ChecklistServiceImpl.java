@@ -283,7 +283,6 @@ ChecklistServiceImpl implements ChecklistService {
 
         String fileName = file.getOriginalFilename();
         fileName = UUID.randomUUID() + "." + StringUtils.getFilenameExtension(fileName);
-        checklistRepository.updateCover(checklistId, fileName);
 
         minioClient.putObject(
                 PutObjectArgs.builder()
@@ -297,6 +296,7 @@ ChecklistServiceImpl implements ChecklistService {
         String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/api/v1/files/preview-file/" + fileName)
                 .toUriString();
+        checklistRepository.updateCover(checklistId, fileUrl);
 
         return FileMetadata.builder()
                 .fileName(fileName)
