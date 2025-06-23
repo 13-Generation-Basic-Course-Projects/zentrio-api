@@ -332,4 +332,10 @@ public interface TaskRepository {
         AND task_id = #{taskId}
     """)
     UUID getLeaderIdByUserIdAndTaskId(UUID userId, UUID taskId);
+
+    @Select("""
+        SELECT *  FROM tasks
+        WHERE board_id = #{boardId}
+    """)
+    List<Task> getAllTasksByBoardId(UUID boardId);
 }

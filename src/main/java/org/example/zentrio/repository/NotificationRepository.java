@@ -31,8 +31,8 @@ public interface NotificationRepository {
     HashSet<Notification> getNotificationsByUserId(UUID userId);
 
     @Select("""
-                INSERT INTO notifications(notification_id, content, type, is_read, created_at, task_assign_id, sender_id, receiver_id)
-                VALUES(#{notificationId}, #{content}, #{type}, #{isRead}, #{createdAt}, #{taskAssignId}, #{senderId},#{receiverId})
+                INSERT INTO notifications(notification_id, title, content, type, is_read, created_at, reference_id, sender_id, receiver_id)
+                VALUES(#{notificationId}, #{title}, #{content}, #{type}, #{isRead}, #{createdAt}, #{referenceId}, #{senderId}, #{receiverId})
             """)
     @ResultMap("notificationMapper")
     void insertNotification(Notification notification);

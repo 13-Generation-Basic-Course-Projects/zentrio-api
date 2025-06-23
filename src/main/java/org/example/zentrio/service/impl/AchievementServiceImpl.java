@@ -5,20 +5,17 @@ import org.example.zentrio.dto.request.AchievementRequest;
 import org.example.zentrio.dto.response.AchievementResponse;
 import org.example.zentrio.dto.response.AppUserResponse;
 import org.example.zentrio.dto.response.BoardSummary;
+import org.example.zentrio.enums.Stage;
 import org.example.zentrio.exception.BadRequestException;
 import org.example.zentrio.exception.NotFoundException;
-import org.example.zentrio.model.Achievement;
-import org.example.zentrio.model.AppUser;
-import org.example.zentrio.repository.AchievementRepository;
-import org.example.zentrio.repository.AppUserRepository;
+import org.example.zentrio.model.*;
+import org.example.zentrio.repository.*;
 import org.example.zentrio.service.AchievementService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +23,9 @@ public class AchievementServiceImpl implements AchievementService {
 
     private final AchievementRepository achievementRepository;
     private final AppUserRepository appUserRepository;
+    private final BoardRepository boardRepository;
+    private final WorkspaceRepository workspaceRepository;
+    private final TaskRepository taskRepository;
 
     @Override
     public Achievement createAchievement(AchievementRequest achievementRequest) {
@@ -73,9 +73,34 @@ public class AchievementServiceImpl implements AchievementService {
     }
 
     @Override
-    public Achievement getMyAchievement() {
+    public Map<String, Object> getMyAchievement() {
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
-        return achievementRepository.getMyAchievement(userId);
+        List<Workspace> workspaces = workspaceRepository.getAllWorkspacesByUserId(userId);
+        Map<String, Object> achievementData = new HashMap<>();
+
+        for (Workspace workspace : workspaces) {
+            List<Board> boards = boardRepository.getAllBoardByWorkspaceId(workspace.getWorkspaceId());
+
+            for (Board board : boards) {
+                List<Task> tasks = taskRepository.getAllTasksByBoardId(board.getBoardId());
+                System.out.println(tasks);
+                long completed = tasks.stream()
+                        .filter(task -> task.getStage().equals(Stage.COMPLETED.toString()))
+                        .count();
+                long total = tasks.size();
+                double percent = total == 0 ? 0 : (completed * 100.0 / total);
+
+                Map<String, Object> boardData = new HashMap<>();
+                boardData.put("boardName", board.getTitle());
+                boardData.put("completedTasks", completed);
+                boardData.put("totalTasks", total);
+                boardData.put("completionRate", String.format("%.0f%%", percent));
+
+                achievementData.put(board.getTitle(), boardData);
+            }
+        }
+        return achievementData;
     }
+
 
 }
