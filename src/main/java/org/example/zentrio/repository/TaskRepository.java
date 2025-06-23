@@ -256,7 +256,8 @@ public interface TaskRepository {
             @Result(property = "creator", column = "created_by",
                     one = @One(select = "getDataOfUserCreator")),
 
-
+            @Result(property = "teamLeader", column = "task_id",
+                    one = @One(select = "getTeamLeadData")),
             @Result(property = "allChecklists", column = "task_id",
                     many = @Many(select = "org.example.zentrio.repository.ChecklistRepository.getAllDataInChecklistByTaskId")),
     })

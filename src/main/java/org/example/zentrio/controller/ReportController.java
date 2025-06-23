@@ -18,7 +18,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.format.TextStyle;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("api/v1/reports")
@@ -103,21 +106,20 @@ public class ReportController {
 @GetMapping("/pdf/boards/{board-id}")
 @Operation(summary = "Generate report as pdf file by board id")
 public ResponseEntity<byte[]> generateProjectReport(@PathVariable("board-id") UUID boardId) {
-    Report report = reportService.getReportByBoardId(boardId); // You parse JSON into this DTO
+    Report report = reportService.getReportByBoardId(boardId);
     String teamLead = memberRepository.getPmData(boardId);
-    int taskCount = 0;
-    for (StageTaskGroup data: report.getGroupedTasks()){
-        taskCount+= data.getCount();
-    }
+
     List<StageSummary> stageSummaries = new ArrayList<>();
+    List<StageTaskGroup> groupedTasks = report.getGroupedTasks();
+    int taskCount = 0;
 
-    for (StageTaskGroup group : report.getGroupedTasks()) {
+    for (StageTaskGroup group : groupedTasks) {
+        taskCount += group.getCount();
+
         int checklistCount = 0;
-
         for (TaskResponse task : group.getTasks()) {
             if (task.getAllChecklists() != null) {
                 checklistCount += task.getAllChecklists().size();
-
             }
         }
 
@@ -127,35 +129,84 @@ public ResponseEntity<byte[]> generateProjectReport(@PathVariable("board-id") UU
                 checklistCount
         ));
     }
-    List<StageTaskGroup> groupedTasks = report.getGroupedTasks();
 
+    // Monthly summaries
+    List<MonthlyTaskSummary> monthlySummaries = new ArrayList<>();
+    Map<Month, List<TaskResponse>> tasksByMonth = groupedTasks.stream()
+            .flatMap(group -> group.getTasks().stream())
+            .filter(task -> task.getCreatedAt() != null)
+            .collect(Collectors.groupingBy(task -> task.getCreatedAt().getMonth()));
 
+    for (Month month : Month.values()) {
+        List<TaskResponse> tasks = tasksByMonth.getOrDefault(month, new ArrayList<>());
+        int taskCountPerMonth = tasks.size();
+        int subtaskCount = 0;
+        int completedCount = 0;
 
+        for (TaskResponse task : tasks) {
+            List<ChecklistRespone> checklists = task.getAllChecklists();
+            if (checklists != null) {
+                subtaskCount += checklists.size();
+                completedCount += (int) checklists.stream()
+                        .filter(ChecklistRespone::isCompleted)
+                        .count();
+            }
+        }
+
+        double completionRateValue = (subtaskCount == 0) ? 0 : (completedCount * 100.0 / subtaskCount);
+        String completionRate = String.format("%.0f%%", completionRateValue);
+
+        monthlySummaries.add(new MonthlyTaskSummary(
+                month.getDisplayName(TextStyle.FULL, Locale.ENGLISH),
+                taskCountPerMonth,
+                subtaskCount,
+                completionRate,
+                report.getVersion()
+        ));
+    }
+
+    int totalTaskCount = monthlySummaries.stream()
+            .mapToInt(MonthlyTaskSummary::getTaskCount)
+            .sum();
+
+    int totalSubTaskCount = monthlySummaries.stream()
+            .mapToInt(MonthlyTaskSummary::getSubTaskCount)
+            .sum();
+
+    double avgCompletionRateValue = monthlySummaries.isEmpty() ? 0 :
+            monthlySummaries.stream()
+                    .mapToInt(ms -> Integer.parseInt(ms.getCompletionRate().replace("%", "")))
+                    .average()
+                    .orElse(0.0);
+    String avgCompletionRate = String.format("%.0f%%", avgCompletionRateValue);
 
     Map<String, Object> data = new HashMap<>();
-
-
     data.put("teamLead", teamLead);
     data.put("boardName", report.getBoardName());
     data.put("creationDate", report.getBoardData().getCreatedAt());
     data.put("version", report.getVersion());
     data.put("allMembers", report.getAllMembers());
-    data.put("allTasks", report.getGroupedTasks());
+    data.put("allTasks", groupedTasks);
     data.put("taskCount", taskCount);
     data.put("stageSummaries", stageSummaries);
-    data.put("groupedTasks", groupedTasks); // passed into Thymeleaf
+    data.put("monthlySummaries", monthlySummaries);
+    data.put("totalTaskCount", totalTaskCount);
+    data.put("totalSubTaskCount", totalSubTaskCount);
+    data.put("avgCompletionRate", avgCompletionRate);
 
-
-    byte[] pdf = pdfService.generatePdf("project-report", data); // Use your pdfService like before
+    byte[] pdf = pdfService.generatePdf("project-report", data);
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_PDF);
     headers.setContentDispositionFormData("attachment", report.getBoardName() + "-report.pdf");
     reportService.updateVersionReport(report);
+
     return ResponseEntity.ok()
             .headers(headers)
             .body(pdf);
 }
+
+
 
 
 }

@@ -127,6 +127,7 @@ public class AuthController {
                             .build()
             );
         }
+        System.out.println(serviceResponse.getBody());
         return ResponseEntity.ok(
                 ApiResponse.builder()
                         .success(true)
