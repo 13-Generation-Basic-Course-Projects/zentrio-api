@@ -288,4 +288,9 @@ public interface BoardRepository {
     void leaveBoard(UUID boardId, UUID userId);
 
 
+
+    @Select("""
+        SELECT * FROM boards WHERE workspace_id = #{workspaceId}
+    """)
+    List<Board> getAllBoardByWorkspaceId(UUID workspaceId);
 }

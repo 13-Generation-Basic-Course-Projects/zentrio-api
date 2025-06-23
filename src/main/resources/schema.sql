@@ -212,11 +212,12 @@ CREATE TABLE achievements
 CREATE TABLE notifications
 (
     notification_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title           TEXT NOT NULL,
     content         TEXT NOT NULL,
     type            VARCHAR(50),
     is_read         BOOLEAN          DEFAULT FALSE,
     created_at      TIMESTAMP        DEFAULT CURRENT_TIMESTAMP,
-    task_assign_id  UUID REFERENCES task_assignments (task_assign_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    reference_id    UUID ,
     sender_id       UUID REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
     receiver_id     UUID REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE
 );

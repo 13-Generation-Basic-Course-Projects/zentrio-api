@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.apache.ibatis.annotations.Select;
 import org.example.zentrio.dto.request.NotificationRequest;
 import org.example.zentrio.dto.response.ApiResponse;
 import org.example.zentrio.model.Notification;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -30,16 +28,14 @@ public class NotificationController {
 
 
     @PostMapping("/sendMessageToAllUsers")
-    public void sendMessageToAllUsers(@RequestBody String message) throws JsonProcessingException {
-        notificationService.sendMessageToAllUsers(message);
+    public void sendMessageToAllUsers(@RequestBody NotificationRequest notificationRequest) throws JsonProcessingException {
+        notificationService.sendMessageToAllUsers(notificationRequest);
     }
 
-    @PostMapping("/sendMessageToUser/users/{receiver-id}/tasks/{task-id}")
-    public void sendMessageToUser(
-            @PathVariable("receiver-id") String receiverId,
-            @PathVariable("task-id") UUID taskId,
-            @RequestBody String message) throws JsonProcessingException {
-        notificationService.sendPushNotificationToUser(receiverId, taskId, message);
+    @PostMapping("/send")
+    public void sendMessageToUser(@RequestBody NotificationRequest notificationRequest
+           ) throws JsonProcessingException {
+        notificationService.sendPushNotificationToUser(notificationRequest);
     }
 
 

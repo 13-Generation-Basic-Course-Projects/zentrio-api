@@ -3,6 +3,8 @@ package org.example.zentrio.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.example.zentrio.dto.request.NotificationRequest;
+import org.example.zentrio.enums.NotificationTypes;
 import org.example.zentrio.exception.BadRequestException;
 import org.example.zentrio.exception.NotFoundException;
 import org.example.zentrio.model.AppUser;
@@ -43,13 +45,13 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
 
 
-    public void sendMessageToAllUsers(String message) throws JsonProcessingException {
+    public void sendMessageToAllUsers(NotificationRequest notificationRequest) throws JsonProcessingException {
         String url = "https://onesignal.com/api/v1/notifications";
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json; charset=UTF-8");
         headers.set("Authorization", "Basic " + REST_API_KEY);
 
-        String strJsonBody = buildJsonBodyForAllUsers(message);
+        String strJsonBody = buildJsonBodyForAllUsers(notificationRequest.getTitle(),notificationRequest.getMessage(),notificationRequest.getType());
         HttpEntity<String> request = new HttpEntity<>(strJsonBody, headers);
         restTemplate.postForEntity(url, request, String.class);
 
@@ -58,75 +60,49 @@ public class NotificationServiceImpl implements NotificationService {
             throw new RuntimeException("Failed to send notification to OneSignal");
         }
 
-        Notification notification = new Notification();
-        notification.setNotificationId(UUID.randomUUID());
-        notification.setContent(message);
-        notification.setType("push");
-        notification.setIsRead(false);
-        notification.setCreatedAt(LocalDateTime.now());
-        UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
-        notification.setSenderId(userId);
-//        notificationRepository.insertNotification(notification);
     }
 
-    public void sendPushNotificationToUser(String receiverId,UUID taskId, String message) throws JsonProcessingException {
+    public void sendPushNotificationToUser(NotificationRequest notificationRequest) throws JsonProcessingException {
 
-        Task task = taskRepository.getTaskByTaskId(taskId);
-        if (task == null) {
-            throw new NotFoundException("Task assign ID " +taskId+ "not found");
-        }
-
-        UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
-        UUID senderUUID;
-        UUID receiverUUID;
-
-        try {
-            senderUUID = (userId);
-            receiverUUID = UUID.fromString(receiverId);
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Invalid UUID format for sender or receiver ID");
-        }
-
-        AppUser receiverUser = appUserRepository.getUserById(receiverUUID);
-        if (receiverUser == null || receiverUser.getUserId() == null) {
-            throw new BadRequestException("User with ID " + receiverId + " not found");
-        }
-
-//        UUID taskAssignId = notificationRepository.getTaskAssignId(taskId);
-//        if (taskAssignId == null) {
-//            throw new NotFoundException("Task assignment not found for task ID " + taskId );
-//        }
-
-
+        List<UUID> receiverUUIDs = notificationRequest.getUserIds();
+        String message = notificationRequest.getMessage();
+        UUID senderUUID = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         // 1. Send push notification via OneSignal
-        String url = "https://onesignal.com/api/v1/notifications";
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Content-Type", "application/json; charset=UTF-8");
-        headers.set("Authorization", "Basic " + REST_API_KEY);
+        for (UUID receiverUUID : receiverUUIDs) {
+            AppUser receiverUser = appUserRepository.getUserById(receiverUUID);
+            if (receiverUser == null) {
+                throw new NotFoundException("User with ID " + receiverUUID + " not found");
+            }
+            // Prepare OneSignal push notification
+            String url = "https://onesignal.com/api/v1/notifications";
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Content-Type", "application/json; charset=UTF-8");
+            headers.set("Authorization", "Basic " + REST_API_KEY);
 
-        String userStrId = receiverUUID.toString();
-        String strJsonBody = buildJsonBodyForSingleUser(message, userStrId);
+            String userStrId = receiverUUID.toString();
+            String strJsonBody = buildJsonBodyForSingleUser(notificationRequest, userStrId);
 
-        HttpEntity<String> request = new HttpEntity<>(strJsonBody, headers);
-        restTemplate.postForEntity(url, request, String.class);
+            HttpEntity<String> request = new HttpEntity<>(strJsonBody, headers);
+            ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
 
-        Notification notification = new Notification();
-        notification.setNotificationId(UUID.randomUUID());
-        String content = message;
-        if (content.startsWith("\"") && content.endsWith("\"")) {
-            content = content.substring(1, content.length() - 1);
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new RuntimeException("Failed to send notification to OneSignal for user " + receiverUUID);
+            }
+
+            // 2. Save in-app notification per user
+            Notification notification = new Notification();
+            notification.setNotificationId(UUID.randomUUID());
+            notification.setTitle(notificationRequest.getTitle());
+            notification.setContent(message);
+            notification.setType(notification.getType());  // Or use enum if available
+            notification.setIsRead(false);
+            notification.setCreatedAt(LocalDateTime.now());
+            notification.setSenderId(senderUUID);
+            notification.setReceiverId(receiverUUID);
+            notification.setReferenceId(notificationRequest.getReferenceId());
+
+            notificationRepository.insertNotification(notification);
         }
-
-        System.out.println("content" + content);
-        notification.setContent(content);
-        notification.setType("IN APP");
-        notification.setIsRead(false);
-        notification.setCreatedAt(LocalDateTime.now());
-        notification.setSenderId(senderUUID);
-        notification.setReceiverId(receiverUUID);
-//        notification.setTaskAssignId(taskAssignId);
-        notificationRepository.insertNotification(notification);
-        System.out.println("notification: " + notification);
 
     }
 
@@ -160,71 +136,8 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public Notification sendNotifications(String message, List<UUID> userIds) {
-        try {
-            String jsonBody;
-            boolean isBroadcast = (userIds == null || userIds.isEmpty());
-
-            // Prepare request to OneSignal
-            if (isBroadcast) {
-                jsonBody = buildJsonBodyForAllUsers(message);
-            } else {
-                // Send individually to each user (OneSignal prefers this unless you're using include_aliases with many)
-                for (UUID uid : userIds) {
-                    String userJson = buildJsonBodyForSingleUser(message, uid.toString());
-
-                    HttpHeaders headers = new HttpHeaders();
-                    headers.setContentType(MediaType.APPLICATION_JSON);
-                    headers.set("Authorization", "Basic " + REST_API_KEY);
-
-                    HttpEntity<String> request = new HttpEntity<>(userJson, headers);
-                    restTemplate.postForEntity("https://onesignal.com/api/v1/notifications", request, String.class);
-
-                    // Store in database
-                    Notification notification = new Notification();
-                    notification.setNotificationId(UUID.randomUUID());
-                    notification.setContent(stripQuotes(message));
-                    notification.setType("IN APP");
-                    notification.setIsRead(false);
-                    notification.setCreatedAt(LocalDateTime.now());
-
-                    UUID senderId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
-                    notification.setSenderId(senderId);
-                    notification.setReceiverId(uid);
-
-                    notificationRepository.insertNotification(notification);
-                }
-
-                // Return the last notification (or modify to return a list if you prefer)
-                Notification last = new Notification();
-                last.setContent(message);
-                return last;
-            }
-
-            // For broadcast (all users)
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization", "Basic " + REST_API_KEY);
-            HttpEntity<String> request = new HttpEntity<>(jsonBody, headers);
-            restTemplate.postForEntity("https://onesignal.com/api/v1/notifications", request, String.class);
-
-            // Save one sample notification record (no specific receiver)
-            Notification broadcastNotification = new Notification();
-            broadcastNotification.setNotificationId(UUID.randomUUID());
-            broadcastNotification.setContent(stripQuotes(message));
-            broadcastNotification.setType("IN APP");
-            broadcastNotification.setIsRead(false);
-            broadcastNotification.setCreatedAt(LocalDateTime.now());
-            UUID senderId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
-            broadcastNotification.setSenderId(senderId);
-            broadcastNotification.setReceiverId(null); // or a special system UUID
-            notificationRepository.insertNotification(broadcastNotification);
-
-            return broadcastNotification;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+//
+        return null;
     }
 
 
@@ -239,32 +152,39 @@ public class NotificationServiceImpl implements NotificationService {
 
 
 
-    private String buildJsonBodyForAllUsers(String message) throws JsonProcessingException {
+    private String buildJsonBodyForAllUsers(String title, String message, NotificationTypes types) throws JsonProcessingException {
         Map<String, Object> body = new HashMap<>();
         body.put("app_id", APP_ID);
         body.put("included_segments", new String[]{"All"});
-        Map<String, String> data = new HashMap<>();
-        data.put("foo", "bar");
-        body.put("data", data);
+        Map<String, String> heading = new HashMap<>();
+        heading.put("en", title);
+        body.put("headings", heading);
         Map<String, String> contents = new HashMap<>();
         contents.put("en", message);
         body.put("contents", contents);
 
+        Map<String, String> data = new HashMap<>();
+        data.put("notificationType", types.name());
+        body.put("data", data);
         return objectMapper.writeValueAsString(body);
     }
 
-    private String buildJsonBodyForSingleUser(String message, String userId) throws JsonProcessingException {
+    private String buildJsonBodyForSingleUser(NotificationRequest notificationRequest, String userId) throws JsonProcessingException {
         Map<String, Object> body = new HashMap<>();
         body.put("app_id", APP_ID);
         body.put("target_channel", "push");
         Map<String, String[]> includeAliases = new HashMap<>();
         includeAliases.put("external_id", new String[]{userId});
         body.put("include_aliases", includeAliases);
-        Map<String, String> data = new HashMap<>();
-        data.put("foo", "bar");
-        body.put("data", data);
+        Map<String, String> headings = new HashMap<>();
+        headings.put("en", notificationRequest.getTitle() != null && !notificationRequest.getTitle().isEmpty() ? notificationRequest.getTitle() : "Notification");
+        body.put("headings", headings);
+        Map<String, String> titles = new HashMap<>();
+        titles.put("en", notificationRequest.getTitle() != null && !notificationRequest.getTitle().isEmpty() ? notificationRequest.getTitle() : "Notification");
+        body.put("title", titles);
+
         Map<String, String> contents = new HashMap<>();
-        contents.put("en", message);
+        contents.put("en",notificationRequest.getMessage() != null && !notificationRequest.getMessage().isEmpty() ? notificationRequest.getMessage() : "Notification");
         body.put("contents", contents);
 
         return objectMapper.writeValueAsString(body);
