@@ -1,10 +1,12 @@
 package org.example.zentrio.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.apache.ibatis.annotations.Select;
+import org.example.zentrio.dto.request.NotificationRequest;
 import org.example.zentrio.dto.response.ApiResponse;
 import org.example.zentrio.model.Notification;
 import org.example.zentrio.service.NotificationService;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -75,6 +78,20 @@ public class NotificationController {
                 .success(true)
                 .message("Delete all notification successfully")
                 .payload(null)
+                .status(HttpStatus.OK)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+
+    @Operation(summary = "Sending notification to multiple users",description = "Send notification to multiple users")
+    @PostMapping("/users")
+    public ResponseEntity<ApiResponse<Notification>> sendNotifications(@RequestBody NotificationRequest notificationRequest) throws JsonProcessingException {
+        ApiResponse<Notification> apiResponse = ApiResponse.<Notification>builder()
+                .success(true)
+                .message("Sending all notification successfully")
+                .payload(notificationService.sendNotifications(notificationRequest.getMessage(),notificationRequest.getUserIds()))
                 .status(HttpStatus.OK)
                 .timestamp(LocalDateTime.now())
                 .build();

@@ -1,165 +1,272 @@
 
-
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your OTP Code</title>
+    <title>Verify Your Email Address</title>
+    <!-- Add Google Fonts Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f7f9fc;
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background-color: #f5f5f5;
             margin: 0;
             padding: 0;
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
-        .email-wrapper {
-            max-width: 640px;
-            margin: 40px auto;
+        .email-container {
+            max-width: 500px;
+            margin: 0 auto;
             background-color: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
             overflow: hidden;
-            padding: 48px 32px;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
         }
 
-        .header {
+        .logo-section {
             text-align: center;
-            margin-bottom: 32px;
+            padding: 20px;
+            background-color: #ffffff;
         }
 
         .logo {
+            max-width: 280px;
+            height: auto;
             display: block;
             margin: 0 auto;
-            width: 120px;
+        }
+
+        .header-section {
+            height: 230px;
+            background: linear-gradient(to bottom, #459dbd 0%, #a1d4e7 100%);
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            margin-bottom: 80px;
+            border-radius: 16px;
+        }
+
+        .header-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .illustration {
+            width: 100%;
+            max-width: 520px;
+            height: 320px;
+            margin: -10px auto 0 auto;
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .illustration img {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
             height: auto;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
         }
 
-        .heading {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1a202c;
-            margin: 16px 0 8px;
+        .content-section {
+            padding: 20px;
         }
 
-        .subheading {
-            font-size: 16px;
-            color: #4a5568;
-            margin: 0;
-        }
-
-        .otp-container {
-            text-align: center;
-            margin: 32px 0;
-        }
-
-        .otp-box {
-            display: inline-block;
-            background: linear-gradient(165deg, #e6fffa 45%, #e8f0fe 50%);
-            border: 1px solid #e2e8f0;
-            color: #0000FF;
-            font-size: 40px;
-            font-weight: 800;
-            letter-spacing: 8px;
-            padding: 24px 32px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .info-text {
-            font-size: 14px;
-            color: #4a5568;
-            text-align: center;
-            margin: 0 16px 32px;
-        }
-
-        .info-text strong {
-            color: #2d3748;
-        }
-
-        .action-text {
-            font-size: 14px;
-            color: #4a5568;
-            text-align: center;
-            margin-bottom: 32px;
-        }
-
-        .action-text a {
-            color: #3182ce;
-            text-decoration: none;
+        .step-indicator {
+            color: #666;
+            font-size: 12px;
             font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
         }
 
-        .action-text a:hover {
-            text-decoration: underline;
+        .main-heading {
+            font-size: 32px;
+            font-weight: 700;
+            color: #459dbd;
+            line-height: 1.2;
+            margin: 0 0 16px 0;
         }
 
-        .footer {
+        .description {
+            font-size: 16px;
+            color: #666;
+            margin: 0 0 20px 0;
+            line-height: 1.5;
+        }
+
+        .otp-section {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .otp-code {
+            display: inline-block;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            /*background: linear-gradient(120deg, rgba(69, 157, 189, 0.8), rgba(255, 255, 255, 0.2));*/
+            /*background: linear-gradient(135deg, #2b6f8b, #459dbd, #5fc3e4);*/
+            border: 2px solid #459dbd;
+            color: #459dbd;
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: 6px;
+            padding: 20px 32px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(30, 64, 175, 0.1);
+        }
+
+
+        .otp-info {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: -20px;
+        }
+
+        .email-footer {
+            background: linear-gradient(to top, #459dbd 0%, #a1d4e7 100%);
+            padding: 20px;
+            text-align: center;
             font-size: 12px;
             color: #a0aec0;
-            text-align: center;
-            border-top: 1px solid #edf2f7;
-            padding-top: 24px;
-            margin-top: 32px;
+            transform: translateY(-60px);
         }
 
-        .footer a {
-            color: #3182ce;
+        .email-footer p {
+            margin: 8px 0;
+            line-height: 1.6;
+            color: white;
+        }
+
+        .email-footer a {
+            color: white;
             text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
         }
 
-        .footer a:hover {
+        .footer-links a {
+            color: #ff00bf;
+            text-decoration: none;
+            margin: 0 8px;
+        }
+
+        .footer-links a:hover {
             text-decoration: underline;
+        }
+
+        .social-links {
+            margin: 15px 0;
+        }
+
+        .social-links a {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            background: #4a5568;
+            border-radius: 50%;
+            margin: 0 8px;
+            line-height: 32px;
+            text-align: center;
+            color: white;
+            transition: all 0.3s;
         }
 
         @media only screen and (max-width: 600px) {
-            .email-wrapper {
-                padding: 32px 24px;
-                margin: 24px 16px;
+            .email-container {
+                margin: 16px;
+                border-radius: 8px;
             }
 
-            .heading {
-                font-size: 24px;
+            .logo-section {
+                padding: 16px;
             }
 
-            .otp-box {
-                font-size: 32px;
-                letter-spacing: 6px;
+            .header-section {
+                padding: 16px;
+            }
+
+            .content-section {
+                padding: 16px;
+            }
+
+            .email-footer {
+                padding: 16px;
+            }
+
+            .main-heading {
+                font-size: 28px;
+            }
+
+            .otp-code {
+                font-size: 28px;
+                letter-spacing: 4px;
                 padding: 16px 24px;
-            }
-
-            .logo {
-                width: 100px;
             }
         }
     </style>
 </head>
 <body>
-<div class="email-wrapper">
-    <div class="header">
-        <!--    <img class="logo" src="https://i.imgur.com/7qYpZ3Z.png" alt="Zentrio Logo">-->
-        <h1 class="heading">Verify Your Account</h1>
-        <p class="subheading">Use the secure OTP below to complete your verification</p>
+<div class="email-container">
+    <!-- Logo Section -->
+    <div class="logo-section">
+        <img src="https://i.imgur.com/bP5QI3y.png" alt="Logo" class="logo">
     </div>
 
-    <div class="otp-container">
-        <div class="otp-box" th:text="${otp}">123456</div>
+    <!-- Header Section -->
+    <div class="header-section">
+        <!-- Simple CSS Illustration -->
+        <div class="illustration">
+            <img src="https://imgur.com/BlUlRR6.png" alt="verify otp">
+        </div>
     </div>
 
-    <p class="info-text">
-        This code will expire in <strong>5 minutes</strong> for your security. Please do not share it with anyone.
-    </p>
+    <div class="content-section">
+        <div class="step-indicator">YOU'RE ONE STEP AWAY</div>
+        <h1 class="main-heading">Verify your email address</h1>
+        <p class="description">
+            To complete your profile and start taking business rides with Zentrio,
+            you'll need to verify your email address.
+        </p>
 
-    <p class="action-text">
-        Having trouble? <a href="https://zentriokshrd.com">Contact our support team</a> for assistance.
-    </p>
+        <div class="otp-section">
+            <div class="otp-code" th:text="${otp}">123456</div>
+            <div class="otp-info">
+                This code will expire in <strong>3 minutes</strong> for your security.
+            </div>
+        </div>
+    </div>
 
-    <div class="footer">
-        &copy; 2025 Zentrio. All rights reserved.<br>
-        <a href="https://zentriokshrd.com/privacy">Privacy Policy</a> |
-        <a href="https://zentriokshrd.com/terms">Terms of Service</a>
+    <div class="email-footer">
+        <div class="social-links">
+            <a href="#">f</a>
+            <a href="#">t</a>
+            <a href="#">in</a>
+        </div>
+        <p>&copy; 2025 Zentrio. All rights reserved.</p>
+        <p>
+            <a href="https://zentriokshrd.com/privacy">Privacy Policy</a> &bull;
+            <a href="https://zentriokshrd.com/terms">Terms of Service</a>
+        </p>
     </div>
 </div>
 </body>
