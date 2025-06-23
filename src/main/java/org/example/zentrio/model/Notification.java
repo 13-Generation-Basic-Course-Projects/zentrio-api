@@ -19,7 +19,11 @@ public class Notification {
     private String type;
     private Boolean isRead;
     private LocalDateTime createdAt;
-    private UUID referenceId;
+    private UUID boardId;
+    private Board board;
+    private UUID taskId;
+    private Task task;
+    private UUID checklistId;
     private UUID senderId;
     private AppUserResponse sender;
     private UUID receiverId;

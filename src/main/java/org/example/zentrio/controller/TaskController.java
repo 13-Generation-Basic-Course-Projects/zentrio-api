@@ -1,5 +1,6 @@
 package org.example.zentrio.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -142,7 +143,7 @@ public class TaskController {
     @PostMapping("/{task-id}/members/{assignee-id}")
     public ResponseEntity<?> assignLeaderToTask(
             @PathVariable("task-id") UUID taskId,
-            @PathVariable("assignee-id") UUID assigneeId) {
+            @PathVariable("assignee-id") UUID assigneeId) throws JsonProcessingException {
         taskService.assignLeaderToTask(taskId, assigneeId);
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)

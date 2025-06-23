@@ -32,13 +32,13 @@ public class NotificationController {
         notificationService.sendMessageToAllUsers(notificationRequest);
     }
 
-    @PostMapping("/send")
-    public void sendMessageToUser(@RequestBody NotificationRequest notificationRequest
-           ) throws JsonProcessingException {
+    @PostMapping("/sendSpecificToUsers")
+    public void sendMessageToUser(@RequestBody NotificationRequest notificationRequest) throws JsonProcessingException {
         notificationService.sendPushNotificationToUser(notificationRequest);
     }
 
 
+    @Operation(summary = "Get all notifications by users ID",description = "Get all notifications by users ID")
     @GetMapping("/users/{userId}")
     public ResponseEntity<ApiResponse<HashSet<Notification>>> getNotificationByUserId(@PathVariable("userId") UUID userId) {
         ApiResponse<HashSet<Notification>> apiResponse = ApiResponse.<HashSet<Notification>>builder()
@@ -52,6 +52,7 @@ public class NotificationController {
     }
 
 
+    @Operation(summary = "Deleted notification by ID",description = "Deleted notification by ID And current user ID")
     @DeleteMapping("/{notification-id}")
     public ResponseEntity<?> deleteNotificationByUserId(
             @PathVariable("notification-id") UUID notificationId) {
@@ -66,7 +67,7 @@ public class NotificationController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
-
+    @Operation(summary = "Delete all notification",description = "Deleted all notification for current users")
     @DeleteMapping
     public ResponseEntity<?> deleteAllNotifications() {
         notificationService.deleteAllNotifications();
@@ -81,18 +82,24 @@ public class NotificationController {
     }
 
 
-    @Operation(summary = "Sending notification to multiple users",description = "Send notification to multiple users")
-    @PostMapping("/users")
-    public ResponseEntity<ApiResponse<Notification>> sendNotifications(@RequestBody NotificationRequest notificationRequest) throws JsonProcessingException {
-        ApiResponse<Notification> apiResponse = ApiResponse.<Notification>builder()
+    @Operation(summary = "Get all notification by users ID and boards ID",description = "Get all notification by user ID and board ID")
+    @GetMapping("/users/{user-id}/boards/{board-id}")
+    public ResponseEntity<ApiResponse<HashSet<Notification>>> getNotificationByUserIdAndBoardId(
+            @PathVariable("user-id") UUID userId,
+            @PathVariable("board-id") UUID boardId){
+        ApiResponse<HashSet<Notification>> apiResponse = ApiResponse.<HashSet<Notification>>builder()
                 .success(true)
-                .message("Sending all notification successfully")
-                .payload(notificationService.sendNotifications(notificationRequest.getMessage(),notificationRequest.getUserIds()))
+                .message("Get all notifications for user by user ID and board ID successfully")
+                .payload(notificationService.getNotificationByUserIdAndBoardId(userId,boardId))
                 .status(HttpStatus.OK)
                 .timestamp(LocalDateTime.now())
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+
     }
+
+
+
 
 
 }

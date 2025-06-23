@@ -7,12 +7,8 @@ import org.example.zentrio.dto.request.NotificationRequest;
 import org.example.zentrio.enums.NotificationTypes;
 import org.example.zentrio.exception.BadRequestException;
 import org.example.zentrio.exception.NotFoundException;
-import org.example.zentrio.model.AppUser;
-import org.example.zentrio.model.Notification;
-import org.example.zentrio.model.Task;
-import org.example.zentrio.repository.AppUserRepository;
-import org.example.zentrio.repository.NotificationRepository;
-import org.example.zentrio.repository.TaskRepository;
+import org.example.zentrio.model.*;
+import org.example.zentrio.repository.*;
 import org.example.zentrio.service.NotificationService;
 import org.example.zentrio.service.TaskService;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +29,8 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final AppUserRepository appUserRepository;
     private final TaskRepository taskRepository;
+    private final BoardRepository boardRepository;
+    private final ChecklistRepository checklistRepository;
     @Value("${onesignal.app-id}")
     private String APP_ID;
 
@@ -50,7 +48,6 @@ public class NotificationServiceImpl implements NotificationService {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json; charset=UTF-8");
         headers.set("Authorization", "Basic " + REST_API_KEY);
-
         String strJsonBody = buildJsonBodyForAllUsers(notificationRequest.getTitle(),notificationRequest.getMessage(),notificationRequest.getType());
         HttpEntity<String> request = new HttpEntity<>(strJsonBody, headers);
         restTemplate.postForEntity(url, request, String.class);
@@ -67,21 +64,45 @@ public class NotificationServiceImpl implements NotificationService {
         List<UUID> receiverUUIDs = notificationRequest.getUserIds();
         String message = notificationRequest.getMessage();
         UUID senderUUID = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+
+        // ✅ Board is required
+        Board board = boardRepository.getBoardByBoardId(notificationRequest.getBoardId());
+        if (board == null) {
+            throw new NotFoundException("Board ID " + notificationRequest.getBoardId() + " not found");
+        }
+
+        // ✅ Task is optional
+        Task task = null;
+        if (notificationRequest.getTaskId() != null) {
+            task = taskRepository.getTaskByTaskId(notificationRequest.getTaskId());
+            if (task == null) {
+                throw new NotFoundException("Task ID " + notificationRequest.getTaskId() + " not found");
+            }
+        }
+
+        // ✅ Checklist is optional
+        Checklist checklist = null;
+        if (notificationRequest.getChecklistId() != null) {
+            checklist = checklistRepository.getChecklistById(notificationRequest.getChecklistId());
+            if (checklist == null) {
+                throw new NotFoundException("Checklist ID " + notificationRequest.getChecklistId() + " not found");
+            }
+        }
+
         // 1. Send push notification via OneSignal
         for (UUID receiverUUID : receiverUUIDs) {
             AppUser receiverUser = appUserRepository.getUserById(receiverUUID);
             if (receiverUser == null) {
                 throw new NotFoundException("User with ID " + receiverUUID + " not found");
             }
-            // Prepare OneSignal push notification
+
+            // Prepare push
             String url = "https://onesignal.com/api/v1/notifications";
             HttpHeaders headers = new HttpHeaders();
             headers.set("Content-Type", "application/json; charset=UTF-8");
             headers.set("Authorization", "Basic " + REST_API_KEY);
 
-            String userStrId = receiverUUID.toString();
-            String strJsonBody = buildJsonBodyForSingleUser(notificationRequest, userStrId);
-
+            String strJsonBody = buildJsonBodyForSingleUser(notificationRequest, receiverUUID.toString());
             HttpEntity<String> request = new HttpEntity<>(strJsonBody, headers);
             ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
 
@@ -89,23 +110,24 @@ public class NotificationServiceImpl implements NotificationService {
                 throw new RuntimeException("Failed to send notification to OneSignal for user " + receiverUUID);
             }
 
-            // 2. Save in-app notification per user
+            // 2. Save in DB
             Notification notification = new Notification();
             notification.setNotificationId(UUID.randomUUID());
             notification.setTitle(notificationRequest.getTitle());
             notification.setContent(message);
-            notification.setType(notification.getType());  // Or use enum if available
+            notification.setType(notificationRequest.getType());
             notification.setIsRead(false);
             notification.setCreatedAt(LocalDateTime.now());
+            notification.setBoardId(notificationRequest.getBoardId());
+            notification.setTaskId(notificationRequest.getTaskId()); // nullable
+            notification.setChecklistId(notificationRequest.getChecklistId()); // nullable
             notification.setSenderId(senderUUID);
             notification.setReceiverId(receiverUUID);
-            notification.setReferenceId(notificationRequest.getReferenceId());
-
             notificationRepository.insertNotification(notification);
+
+            System.out.println("Notification sent and saved: " + notification);
         }
-
     }
-
 
 
 
@@ -135,11 +157,31 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public Notification sendNotifications(String message, List<UUID> userIds) {
-//
-        return null;
+    public void sendPushNotificationToUser(UUID receiverId, String title, String message,UUID boardId, UUID taskId, UUID checklistId, NotificationTypes type) throws JsonProcessingException {
+        NotificationRequest notificationRequest = new NotificationRequest();
+        notificationRequest.setUserIds(List.of(receiverId));
+        notificationRequest.setTitle(title);
+        notificationRequest.setMessage(message);
+        notificationRequest.setType(type.name());
+        notificationRequest.setBoardId(boardId);
+        notificationRequest.setTaskId(taskId);
+        notificationRequest.setChecklistId(checklistId);
+        sendPushNotificationToUser(notificationRequest);
     }
 
+    @Override
+    public HashSet<Notification> getNotificationByUserIdAndBoardId(UUID userId, UUID boardId) {
+        AppUser user = appUserRepository.getUserById(userId);
+        if (user == null) {
+            throw new NotFoundException("User with ID " + userId + " not found");
+        }
+        Board board = boardRepository.getBoardByBoardId(boardId);
+        if (board == null) {
+            throw new NotFoundException("Board with ID " + boardId + " not found");
+        }
+
+        return notificationRepository.getNotificationByUserIdAndBoardId(userId,boardId);
+    }
 
 
     private String stripQuotes(String input) {
@@ -150,9 +192,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
 
-
-
-    private String buildJsonBodyForAllUsers(String title, String message, NotificationTypes types) throws JsonProcessingException {
+    private String buildJsonBodyForAllUsers(String title, String message, String type) throws JsonProcessingException {
         Map<String, Object> body = new HashMap<>();
         body.put("app_id", APP_ID);
         body.put("included_segments", new String[]{"All"});
@@ -164,7 +204,7 @@ public class NotificationServiceImpl implements NotificationService {
         body.put("contents", contents);
 
         Map<String, String> data = new HashMap<>();
-        data.put("notificationType", types.name());
+        data.put("notificationType", type);
         body.put("data", data);
         return objectMapper.writeValueAsString(body);
     }
@@ -177,17 +217,32 @@ public class NotificationServiceImpl implements NotificationService {
         includeAliases.put("external_id", new String[]{userId});
         body.put("include_aliases", includeAliases);
         Map<String, String> headings = new HashMap<>();
-        headings.put("en", notificationRequest.getTitle() != null && !notificationRequest.getTitle().isEmpty() ? notificationRequest.getTitle() : "Notification");
+        headings.put("en", notificationRequest.getTitle() != null && !notificationRequest.getTitle().isEmpty()
+                ? notificationRequest.getTitle()
+                : "Notification");
         body.put("headings", headings);
-        Map<String, String> titles = new HashMap<>();
-        titles.put("en", notificationRequest.getTitle() != null && !notificationRequest.getTitle().isEmpty() ? notificationRequest.getTitle() : "Notification");
-        body.put("title", titles);
 
+        // Contents (body/message of the notification)
         Map<String, String> contents = new HashMap<>();
-        contents.put("en",notificationRequest.getMessage() != null && !notificationRequest.getMessage().isEmpty() ? notificationRequest.getMessage() : "Notification");
+        contents.put("en", notificationRequest.getMessage() != null && !notificationRequest.getMessage().isEmpty()
+                ? notificationRequest.getMessage()
+                : "You have a new notification");
         body.put("contents", contents);
+
+        // Optional: add metadata
+        Map<String, String> data = new HashMap<>();
+        data.put("type", notificationRequest.getType());
+        data.put("boardId",notificationRequest.getBoardId().toString());
+        if (notificationRequest.getTaskId() != null) {
+            data.put("taskId", notificationRequest.getTaskId().toString());
+        }
+        if (notificationRequest.getChecklistId() != null) {
+            data.put("checklistId", notificationRequest.getChecklistId().toString());
+        }
+        body.put("data", data);
 
         return objectMapper.writeValueAsString(body);
     }
+
 
 }

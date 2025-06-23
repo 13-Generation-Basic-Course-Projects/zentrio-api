@@ -2,6 +2,7 @@ package org.example.zentrio.service;
 
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.example.zentrio.dto.request.TaskRequest;
 import org.example.zentrio.dto.response.TaskResponse;
 import org.example.zentrio.enums.Stage;
@@ -24,7 +25,7 @@ public interface TaskService {
 
     HashSet<Task> getTaskByTitleWithBoardId(String title, UUID boardId);
 
-    void assignLeaderToTask(UUID taskId, UUID assigneeId);
+    void assignLeaderToTask(UUID taskId, UUID assigneeId) throws JsonProcessingException;
 
     void moveTask(UUID taskId, Stage stage);
 

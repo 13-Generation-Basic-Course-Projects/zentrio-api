@@ -102,7 +102,6 @@ public interface BoardRepository {
                     many = @Many(select = "getAllTaskNames")),
             @Result(property = "roles", column = "{userId=user_id, boardId=board_id}",
                     many = @Many(select = "org.example.zentrio.repository.RoleRepository.getRolesNameByUserId")),
-
     })
     HashSet<MemberResponse> getBoardByBoardIdWithMember(UUID boardId);
 

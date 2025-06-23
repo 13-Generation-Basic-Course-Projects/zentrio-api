@@ -212,14 +212,21 @@ CREATE TABLE achievements
 CREATE TABLE notifications
 (
     notification_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+
     title           TEXT NOT NULL,
     content         TEXT NOT NULL,
-    type            VARCHAR(50),
-    is_read         BOOLEAN          DEFAULT FALSE,
-    created_at      TIMESTAMP        DEFAULT CURRENT_TIMESTAMP,
-    reference_id    UUID ,
+    type            VARCHAR(50), -- You can enforce allowed types later with ENUM or check constraint
+    is_read         BOOLEAN DEFAULT FALSE,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    -- Contextual references
+    board_id        UUID NOT NULL REFERENCES boards (board_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    task_id         UUID REFERENCES tasks (task_id) ON DELETE SET NULL ON UPDATE CASCADE,
+    checklist_id    UUID REFERENCES checklists (checklist_id) ON DELETE SET NULL ON UPDATE CASCADE,
+
+    -- Who sent it and who received it
     sender_id       UUID REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    receiver_id     UUID REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE
+    receiver_id     UUID NOT NULL REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- Create the reports table

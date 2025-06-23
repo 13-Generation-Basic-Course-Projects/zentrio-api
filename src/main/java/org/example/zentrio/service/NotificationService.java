@@ -2,6 +2,7 @@ package org.example.zentrio.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.example.zentrio.dto.request.NotificationRequest;
+import org.example.zentrio.enums.NotificationTypes;
 import org.example.zentrio.model.Notification;
 
 import java.util.HashSet;
@@ -19,6 +20,7 @@ public interface NotificationService {
 
     void deleteAllNotifications();
 
+    void sendPushNotificationToUser(UUID receiverId, String title, String message,UUID boardId, UUID taskId, UUID checklistId, NotificationTypes type) throws JsonProcessingException;
 
-    Notification sendNotifications(String message, List<UUID> userIds);
+    HashSet<Notification> getNotificationByUserIdAndBoardId(UUID userId, UUID boardId);
 }

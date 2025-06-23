@@ -1,8 +1,10 @@
 package org.example.zentrio.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.example.zentrio.dto.request.TaskRequest;
 import org.example.zentrio.dto.response.TaskResponse;
+import org.example.zentrio.enums.NotificationTypes;
 import org.example.zentrio.enums.RoleName;
 import org.example.zentrio.enums.Stage;
 import org.example.zentrio.enums.Status;
@@ -37,6 +39,7 @@ public class TaskServiceImpl implements TaskService {
     private final ChecklistRepository checklistRepository;
     private final MemberRepository memberRepository;
     private final GanttChartService ganttChartService;
+    private final NotificationService notificationService;
 
 
     // need to validate the task with gantt bars
@@ -272,10 +275,9 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public void assignLeaderToTask(UUID taskId, UUID assigneeId) {
+    public void assignLeaderToTask(UUID taskId, UUID assigneeId) throws JsonProcessingException {
 
         Task task = getTaskById(taskId);
-//        validateCurrentUserRoles(task.getBoardId());
         if (taskRepository.isAlreadyAssigned(taskId)) {
             throw new ConflictException("Task's with ID " + taskId + " is already assigned Leader");
         }
@@ -305,8 +307,16 @@ public class TaskServiceImpl implements TaskService {
         leaderId = taskRepository.getLeaderIdByUserIdAndBoardId(assigneeId, task.getBoardId());
         taskRepository.insertTaskAssignment(taskId, assignerMemberId, leaderId);
         updateProgressOfTaskById(taskId);
+        notificationService.sendPushNotificationToUser(
+                assigneeId,
+                "Task Leader Assigned",
+                "You have been assigned as a leader for task" + task.getTitle(),
+                task.getBoardId(),
+                taskId,
+                null,
+                NotificationTypes.TASK_ASSIGNED
+        );
     }
-
 
     @Override
     public void moveTask(UUID taskId, Stage stage) {
