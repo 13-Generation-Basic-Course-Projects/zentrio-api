@@ -7,6 +7,8 @@ import org.example.zentrio.exception.BadRequestException;
 import org.example.zentrio.exception.ForbiddenException;
 import org.example.zentrio.exception.NotFoundException;
 import org.example.zentrio.model.*;
+import org.example.zentrio.repository.AnnouncementRepository;
+import org.example.zentrio.repository.AttachmentRepository;
 import org.example.zentrio.repository.CommentRepository;
 import org.example.zentrio.repository.MemberRepository;
 import org.example.zentrio.service.ChecklistService;
@@ -30,6 +32,7 @@ public class CommentServiceImpl implements CommentService {
 
 
 
+
     public UUID userId (){
         AppUser appUser= (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return appUser.getUserId();
@@ -37,27 +40,29 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public Comment createComment( CommentRequest commentRequest) {
-      UUID  checklistId= commentRequest.getChecklistId();
-      Checklist checklist=  checklistService.getChecklistChecklistId(checklistId);
-      Task task= taskService.getTaskById(checklist.getTaskId());
-      UUID memberId = memberRepository.getMemberId(userId(),task.getBoardId());
-      String role= memberRepository.getRolePMByBoardIdAndUserId(task.getBoardId(),userId());
-      UUID pmId= memberRepository.getPmId(userId(),task.getBoardId());
-      System.out.println("role:" + role);
+          UUID  checklistId= commentRequest.getChecklistId();
+          Checklist checklist=  checklistService.getChecklistChecklistId(checklistId);
+          Task task= taskService.getTaskById(checklist.getTaskId());
+          UUID memberId = memberRepository.getMemberId(userId(),task.getBoardId());
+          String role= memberRepository.getRolePMByBoardIdAndUserId(task.getBoardId(),userId());
+          UUID pmId= memberRepository.getPmId(userId(),task.getBoardId());
+          System.out.println("role:" + role);
 
-      if (RoleName.ROLE_MANAGER.name().equals(role)){
-          System.out.println("pmId:" + pmId);
-        return   commentRepository.createComment(checklistId, commentRequest , LocalDateTime.now(), pmId);
-      }
-       UUID teamLeadId= memberRepository.getTeamleadUUID(userId(),checklist.getTaskId());
+          if (RoleName.ROLE_MANAGER.name().equals(role)){
+              System.out.println("pmId:" + pmId);
+              return   commentRepository.createComment(checklistId, commentRequest , LocalDateTime.now(), pmId);
+          }
+          UUID teamLeadId= memberRepository.getTeamleadUUID(userId(),checklist.getTaskId());
 
-       if (teamLeadId != null) {
-         return   commentRepository.createComment(checklistId, commentRequest , LocalDateTime.now(), teamLeadId);
-       }
-       if (memberId == null) {
-           throw new ForbiddenException("You are not member in this board");
-       }
-        return commentRepository.createComment(checklistId, commentRequest , LocalDateTime.now(), memberId);
+          if (teamLeadId != null) {
+              return   commentRepository.createComment(checklistId, commentRequest , LocalDateTime.now(), teamLeadId);
+          }
+          if (memberId == null) {
+              throw new ForbiddenException("You are not member in this board");
+          }
+          return commentRepository.createComment(checklistId, commentRequest , LocalDateTime.now(), memberId);
+
+
 
     }
 

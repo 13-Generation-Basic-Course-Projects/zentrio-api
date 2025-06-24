@@ -28,7 +28,6 @@ public class AppUser implements UserDetails {
     private Boolean isReset;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private String googleEmail;
     private String position;
     private String location;
     private String contact;

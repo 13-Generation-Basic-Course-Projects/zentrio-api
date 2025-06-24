@@ -279,19 +279,6 @@ public class DocumentController {
         return documentService.downloadFolderAsZip(documentId, accessToken);
     }
 
-    @PostMapping("/save-email")
-    public ResponseEntity< ApiResponse<Void>> saveGoogleEmailDrive(
-            @RequestParam String email ){
 
-
-        ApiResponse<Void> response =  ApiResponse.<Void>builder()
-                .success(true)
-                .message("file create successfully ")
-                .payload(documentService.saveGoogleEmailDrive(email))
-                .status(HttpStatus.OK)
-                .timestamp(LocalDateTime.now())
-                .build();
-        return ResponseEntity.ok(response);
-    }
 
 }

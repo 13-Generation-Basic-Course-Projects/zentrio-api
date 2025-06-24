@@ -88,11 +88,11 @@ public interface AppUserRepository {
             """)
     void profileImage(String fileUrl, UUID userId);
 
-    @Select("""
-         UPDATE users SET  google_email= #{email} 
-            WHERE user_id= #{userId}
-        """)
-    Void saveGoogleEmailDrive(String email, UUID userId);
+//    @Select("""
+//         UPDATE users SET  google_email= #{email}
+//            WHERE user_id= #{userId}
+//        """)
+//    Void saveGoogleEmailDrive(String email, UUID userId);
 
 
 
