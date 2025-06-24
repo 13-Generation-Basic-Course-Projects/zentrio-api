@@ -9,6 +9,7 @@ import org.example.zentrio.dto.response.*;
 import org.example.zentrio.model.AllMember;
 import org.example.zentrio.model.AllTasks;
 import org.example.zentrio.model.Report;
+import org.example.zentrio.model.VersionReport;
 import org.example.zentrio.repository.MemberRepository;
 import org.example.zentrio.repository.ReportRepository;
 import org.example.zentrio.repository.TaskRepository;
@@ -43,7 +44,7 @@ public class ReportController {
     public ResponseEntity<ApiResponse<Report>> getReportByBoardId(@PathVariable("board-id") UUID boardId) {
         ApiResponse<Report> apiResponse = ApiResponse.<Report>builder()
                 .success(true)
-                .message("Get profile successfully")
+                .message("Get report successfully")
                 .payload(reportService.getReportByBoardId(boardId))
                 .status(HttpStatus.OK)
                 .timestamp(LocalDateTime.now())
@@ -218,6 +219,20 @@ public ResponseEntity<byte[]> generateProjectReport(@PathVariable("board-id") UU
             .body(pdf);
 }
 
+
+    @GetMapping("/version/{report_id}")
+    @Operation(summary = "Get version report by board id")
+    public ResponseEntity<ApiResponse<List<VersionReport>>> getVersionReportByReportId(@PathVariable("report_id") UUID reportId) {
+        ApiResponse<List<VersionReport>> apiResponse = ApiResponse.<List<VersionReport>>builder()
+                .success(true)
+                .message("Get version report successfully")
+                .payload(reportService.getVersionReportByReportId(reportId))
+                .status(HttpStatus.OK)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+
+    }
 
 
 
