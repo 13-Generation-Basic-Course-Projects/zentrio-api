@@ -10,9 +10,11 @@ public enum NotificationTypes {
     TASK_ASSIGNED,
     TASK_UPDATED,
     TASK_COMMENTED,
+    TASK_REMINDER,
     TASK_STATUS_CHANGED,
     CHECKLIST_ITEM_ADDED,
     CHECKLIST_COMPLETED,
+
 
     // Project / Board Updates
     BOARD_CREATED,

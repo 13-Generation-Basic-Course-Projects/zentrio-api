@@ -10,11 +10,9 @@ import org.example.zentrio.exception.NotFoundException;
 import org.example.zentrio.model.*;
 import org.example.zentrio.repository.*;
 import org.example.zentrio.service.NotificationService;
-import org.example.zentrio.service.TaskService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -65,13 +63,13 @@ public class NotificationServiceImpl implements NotificationService {
         String message = notificationRequest.getMessage();
         UUID senderUUID = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
 
-        // ✅ Board is required
+
         Board board = boardRepository.getBoardByBoardId(notificationRequest.getBoardId());
         if (board == null) {
             throw new NotFoundException("Board ID " + notificationRequest.getBoardId() + " not found");
         }
 
-        // ✅ Task is optional
+
         Task task = null;
         if (notificationRequest.getTaskId() != null) {
             task = taskRepository.getTaskByTaskId(notificationRequest.getTaskId());
@@ -80,7 +78,7 @@ public class NotificationServiceImpl implements NotificationService {
             }
         }
 
-        // ✅ Checklist is optional
+
         Checklist checklist = null;
         if (notificationRequest.getChecklistId() != null) {
             checklist = checklistRepository.getChecklistById(notificationRequest.getChecklistId());
@@ -125,7 +123,6 @@ public class NotificationServiceImpl implements NotificationService {
             notification.setReceiverId(receiverUUID);
             notificationRepository.insertNotification(notification);
 
-            System.out.println("Notification sent and saved: " + notification);
         }
     }
 

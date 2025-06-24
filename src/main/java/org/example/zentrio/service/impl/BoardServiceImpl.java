@@ -426,7 +426,6 @@ public class BoardServiceImpl implements BoardService {
     public void leaveBoard(UUID boardId) {
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         boolean existsUserInBoard = boardRepository.existsUserInBoard(userId, boardId);
-        System.out.println("existsUserInBoard: " + existsUserInBoard);
         if (!existsUserInBoard) {
             throw new NotFoundException("Board ID " + boardId + " not belong to this user ID " + userId);
         }

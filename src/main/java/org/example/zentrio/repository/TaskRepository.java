@@ -338,4 +338,5 @@ public interface TaskRepository {
         WHERE board_id = #{boardId}
     """)
     List<Task> getAllTasksByBoardId(UUID boardId);
+
 }

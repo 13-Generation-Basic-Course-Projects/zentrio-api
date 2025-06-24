@@ -190,8 +190,6 @@ public class TaskServiceImpl implements TaskService {
         }
          return  taskRepository.getAllTasksByBoardIdAndGanttBarId(boardId, ganttBarId);
 
-
-
     }
 
     @Override

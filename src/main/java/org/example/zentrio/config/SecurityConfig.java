@@ -47,6 +47,7 @@ public class SecurityConfig {
                         .requestMatchers("api/v1/users/**").permitAll()
                         .requestMatchers("/api/v1/files/**").permitAll()
                         .requestMatchers("/api/v1/data/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthEntrypoint).accessDeniedHandler(jwtAccessDeniedHandler))

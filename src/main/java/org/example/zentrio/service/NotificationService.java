@@ -6,7 +6,6 @@ import org.example.zentrio.enums.NotificationTypes;
 import org.example.zentrio.model.Notification;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.UUID;
 
 public interface NotificationService {
