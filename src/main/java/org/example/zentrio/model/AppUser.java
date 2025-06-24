@@ -28,7 +28,6 @@ public class AppUser implements UserDetails {
     private Boolean isReset;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private String googleEmail;
     private String position;
     private String location;
     private String contact;
@@ -37,14 +36,4 @@ public class AppUser implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();
     }
-//
-//    @Override
-//    public String getPassword() {
-//        return password;
-//    }
-//
-//    @Override
-//    public String getUsername() {
-//        return email;
-//    }
 }

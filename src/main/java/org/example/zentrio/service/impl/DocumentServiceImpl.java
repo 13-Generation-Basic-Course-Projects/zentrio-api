@@ -603,12 +603,12 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public Void saveGoogleEmailDrive(String email) {
         AppUser appUser= appUserRepository.getUserById(userId());
-        if ( appUser.getGoogleEmail()== null ) {
+        if ( appUser.getProvider()== null ) {
 
          return  appUserRepository.saveGoogleEmailDrive(email, userId());
         }else  {
 
-            if (!appUser.getGoogleEmail().equals(email)) {
+            if (!appUser.getProvider().equals(email)) {
                 throw new BadRequestException("The provided email address not right");
             }
 
