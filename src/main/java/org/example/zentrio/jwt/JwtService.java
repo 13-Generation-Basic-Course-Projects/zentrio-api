@@ -45,6 +45,8 @@ public class JwtService {
         return createToken(claims, identifier);
     }
 
+
+
     //3. retrieving any information from token we will need the secret key
     private Claims extractAllClaim(String token) {
         log.info("Extracting claims from token {}", Jwts.parser()
@@ -58,6 +60,8 @@ public class JwtService {
                 .parseSignedClaims(token)
                 .getPayload();
     }
+
+
 
     //4. extract a specific claim from the JWT token’s claims.
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -94,5 +98,10 @@ public class JwtService {
                 .setExpiration(Date.from(Instant.now().plusSeconds(60*15)))
                 .signWith(SignatureAlgorithm.HS512, SECRET)
                 .compact();
+    }
+
+    // add new method
+    public String extractUserId(String token) {
+        return extractClaim(token, Claims::getSubject);
     }
 }

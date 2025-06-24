@@ -102,10 +102,10 @@ public class AttachmentServiceImpl implements AttachmentService {
         }
 
         // Optional: if you want to limit only one attachment per checklist
-        int existingAttachments = attachmentRepository.countByChecklistId(checklistId);
-        if (existingAttachments > 0) {
-            throw new BadRequestException("Checklist already has attachments.");
-        }
+//        int existingAttachments = attachmentRepository.countByChecklistId(checklistId);
+//        if (existingAttachments > 0) {
+//            throw new BadRequestException("Checklist already has attachments.");
+//        }
 
         // Validate the attachment details
         validateAttachmentDetails(attachmentRequest);

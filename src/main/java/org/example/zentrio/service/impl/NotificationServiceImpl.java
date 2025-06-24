@@ -3,6 +3,7 @@ package org.example.zentrio.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.zentrio.dto.request.NotificationRequest;
 import org.example.zentrio.enums.NotificationTypes;
 import org.example.zentrio.exception.BadRequestException;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -21,6 +23,7 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
@@ -29,6 +32,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final TaskRepository taskRepository;
     private final BoardRepository boardRepository;
     private final ChecklistRepository checklistRepository;
+    private final SimpMessagingTemplate messagingTemplate;
     @Value("${onesignal.app-id}")
     private String APP_ID;
 
@@ -123,7 +127,21 @@ public class NotificationServiceImpl implements NotificationService {
             notification.setReceiverId(receiverUUID);
             notificationRepository.insertNotification(notification);
 
+
+            log.info("Sending WS notification to user {}: {}", receiverUUID, notification);
+
+
+            messagingTemplate.convertAndSendToUser(
+                    receiverUUID.toString(),       // user destination prefix
+                    "/topic/notifications",        // destination (must match frontend subscription)
+                    notification                   // the notification object you just saved
+            );
+            log.info("notification send");
+
+            messagingTemplate.convertAndSend("/topic/all-notifications", notification);
         }
+
+
     }
 
 
