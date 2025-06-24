@@ -74,6 +74,8 @@ public class AuthServiceImpl implements AuthService {
         }
 
 
+
+
         request.setPassword(passwordEncoder.encode(request.getPassword()));
         AppUser appUser = authRepository.register(request);
         String otp = otpService.generateOtp(appUser.getEmail());

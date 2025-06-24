@@ -267,7 +267,6 @@ ChecklistServiceImpl implements ChecklistService {
 
         String fileName = file.getOriginalFilename();
         fileName = UUID.randomUUID() + "." + StringUtils.getFilenameExtension(fileName);
-
         minioClient.putObject(
                 PutObjectArgs.builder()
                         .bucket(bucketName)

@@ -6,7 +6,6 @@ import org.example.zentrio.dto.response.AchievementResponse;
 import org.example.zentrio.dto.response.AppUserResponse;
 import org.example.zentrio.dto.response.BoardSummary;
 import org.example.zentrio.enums.Stage;
-import org.example.zentrio.exception.BadRequestException;
 import org.example.zentrio.exception.NotFoundException;
 import org.example.zentrio.model.*;
 import org.example.zentrio.repository.*;

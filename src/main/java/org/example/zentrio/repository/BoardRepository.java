@@ -48,7 +48,12 @@ public interface BoardRepository {
     @ResultMap("boardMapper")
     List<Board> getAllBoardsByWorkspaceId(UUID workspaceId, Integer limit, Integer offset);
 
-
+    @Select("""
+                SELECT * FROM boards WHERE workspace_id = #{workspaceId}
+          
+            """)
+    @ResultMap("boardMapper")
+    List<Board> getAllDataBoardsByWorkspaceId(UUID workspaceId);
     @Select("""
                 UPDATE boards SET title = #{request.title},
                                   description = #{request.description},

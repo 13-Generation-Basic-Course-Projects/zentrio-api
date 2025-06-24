@@ -31,4 +31,9 @@ public class ChecklistRespone {
     private List<MemberResponseData> members;
     private Attachment attachment;
     private List<Comment> allComments;
+
+
+    public boolean isCompleted() {
+        return status.equals("COMPLETED");
+    }
 }
