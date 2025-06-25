@@ -228,9 +228,11 @@ public class NotificationServiceImpl implements NotificationService {
         Map<String, Object> body = new HashMap<>();
         body.put("app_id", APP_ID);
         body.put("target_channel", "push");
+        String templateId = "3ea5a3d9-b2d5-4cae-9890-e579ea279ed3";
         Map<String, String[]> includeAliases = new HashMap<>();
         includeAliases.put("external_id", new String[]{userId});
         body.put("include_aliases", includeAliases);
+        body.put("template_id", templateId);
         Map<String, String> headings = new HashMap<>();
         headings.put("en", notificationRequest.getTitle() != null && !notificationRequest.getTitle().isEmpty()
                 ? notificationRequest.getTitle()
