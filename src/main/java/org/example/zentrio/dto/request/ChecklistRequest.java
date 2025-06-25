@@ -25,11 +25,11 @@ public class ChecklistRequest {
     private String description;
 
     @NotNull
-    @FutureOrPresent
+//    @FutureOrPresent
     private LocalDateTime startedAt;
 
     @NotNull
-    @FutureOrPresent
+//    @FutureOrPresent
     private LocalDateTime finishedAt;
 
     @NotNull

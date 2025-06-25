@@ -15,6 +15,6 @@ import java.util.Map;
 public class AttachmentRequest {
 
     @NotNull
-    @Size(min = 1, max = 100)
+//    @Size(min = 1, max = 100)
     private Map<String, String> details;
 }
