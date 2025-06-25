@@ -15,6 +15,8 @@ import org.example.zentrio.service.GanttBarService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -28,30 +30,42 @@ public class GanttBarServiceImpl implements GanttBarService {
     private final GanttChartRepository ganttChartRepository;
     private final BoardRepository boardRepository;
 
-    @Override
-    public List<GanttBar> createGanttBarByGanttChartId(List<GanttBarRequest> ganttBarRequest) {
+    public List<GanttBar> createGanttBarByGanttChartId(List<GanttBarRequest> ganttBarRequests) {
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
-        List<GanttBar> list= new ArrayList<>();
-        for (GanttBarRequest ganttBarRequest1 : ganttBarRequest) {
-            GanttChart ganttChart = ganttChartRepository.getGanttChartByGanttChartId(ganttBarRequest1.getGanttChartId());
+        ZoneId zoneId = ZoneId.of("Asia/Phnom_Penh");
+        ZonedDateTime now = ZonedDateTime.now(zoneId);
+
+        List<GanttBar> list = new ArrayList<>();
+        for (GanttBarRequest ganttBarRequest : ganttBarRequests) {
+            GanttChart ganttChart = ganttChartRepository.getGanttChartByGanttChartId(ganttBarRequest.getGanttChartId());
             if (ganttChart == null) {
                 throw new BadRequestException("GanttChart not found");
             }
             UUID memberId = boardRepository.getManagerMemberIdByUserIdAndBoardId(userId, ganttChart.getBoardId());
-            if(memberId == null) {
-                throw new ForbiddenException("You're not a manager of this board can't create Gantt bar");
+            if (memberId == null) {
+                throw new ForbiddenException("You're not a manager of this board, can't create Gantt bar");
             }
 
-            if(ganttBarRequest1.getFinishedAt().isBefore(ganttBarRequest1.getStartedAt())){
+            ZonedDateTime startedAtZoned = ganttBarRequest.getStartedAt().atZone(zoneId);
+            ZonedDateTime finishedAtZoned = ganttBarRequest.getFinishedAt().atZone(zoneId);
+
+            if (finishedAtZoned.isBefore(startedAtZoned)) {
                 throw new BadRequestException("Finished time should be after started time");
             }
-          list.add( ganttBarRepository.createGanttBarByGanttChartId(ganttBarRequest1, ganttBarRequest1.getGanttChartId()));
 
+            if (startedAtZoned.isBefore(now)) {
+                throw new BadRequestException("GanttBar start time cannot be in the past.");
+            }
+
+            // You can add more validation here if needed
+
+            GanttBar ganttBar = ganttBarRepository.createGanttBarByGanttChartId(ganttBarRequest, ganttBarRequest.getGanttChartId());
+            list.add(ganttBar);
         }
 
-
-        return list ;
+        return list;
     }
+
 
     @Override
     public GanttBar getGanttBarById(UUID ganttBarId, UUID ganttChartId) {

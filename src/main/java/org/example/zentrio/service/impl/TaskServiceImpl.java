@@ -20,6 +20,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
@@ -44,25 +46,31 @@ public class TaskServiceImpl implements TaskService {
 
     // need to validate the task with gantt bars
     private void validateTaskTimeWithGanttBar(TaskRequest taskRequest, GanttBar ganttBar) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(); // Local server time
 
-        //  Task start time cannot be in the past
-        if (taskRequest.getStartedAt().isBefore(now)) {
+        LocalDateTime taskStart = taskRequest.getStartedAt();
+        LocalDateTime taskFinish = taskRequest.getFinishedAt();
+
+        LocalDateTime ganttStart = ganttBar.getStartedAt();
+        LocalDateTime ganttFinish = ganttBar.getFinishedAt();
+
+        // 1. Task start time cannot be in the past
+        if (taskStart.isBefore(now)) {
             throw new BadRequestException("Task start time cannot be in the past.");
         }
 
-        //  Task finish time must be after start time
-        if (taskRequest.getFinishedAt().isBefore(taskRequest.getStartedAt())) {
+        // 2. Task finish time must be after start time
+        if (taskFinish.isBefore(taskStart)) {
             throw new BadRequestException("Task finish time must be after start time.");
         }
 
-        //  Task finish time must not exceed GanttBar's finish time
-        if (taskRequest.getFinishedAt().isAfter(ganttBar.getFinishedAt())) {
+        // 3. Task finish time must not exceed GanttBar's finish time
+        if (taskFinish.isAfter(ganttFinish)) {
             throw new BadRequestException("Task finish time cannot exceed GanttBar's finish time.");
         }
 
-        //  Task start time must not be before GanttBar's start time
-        if (taskRequest.getStartedAt().isBefore(ganttBar.getStartedAt())) {
+        // 4. Task start time must not be before GanttBar's start time
+        if (taskStart.isBefore(ganttStart)) {
             throw new BadRequestException("Task start time cannot be before GanttBar's start time.");
         }
     }
@@ -100,7 +108,6 @@ public class TaskServiceImpl implements TaskService {
         }
 
         boolean hasAccess = roles.stream().anyMatch(role -> role.equals(RoleName.ROLE_MANAGER.toString()) || role.equals(RoleName.ROLE_LEADER.toString()));
-
         if (!hasAccess) {
             throw new ForbiddenException("Only Project Managers or Team Leaders can manage tasks");
         }
@@ -129,7 +136,6 @@ public class TaskServiceImpl implements TaskService {
         }
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
 
-
         // Validate user has permission (Manager or TL)
         validateRoleManageTask(board.getBoardId(), userId);
 
@@ -146,6 +152,9 @@ public class TaskServiceImpl implements TaskService {
         } else {
             throw new ForbiddenException("You're not a Manager or Team Leader in this board, can't create task");
         }
+
+        System.out.println("task startAt" + taskRequest.getStartedAt());
+        System.out.println("task finishAt" + taskRequest.getFinishedAt());
 
         // Validate timing and references
         validateBoardAndGanttBarAndTaskTime(board.getBoardId(), taskRequest.getGanttBarId(), taskRequest);

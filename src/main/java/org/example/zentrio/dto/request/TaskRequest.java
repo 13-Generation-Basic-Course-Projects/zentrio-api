@@ -21,13 +21,13 @@ public class TaskRequest {
     @NotBlank
     private String title;
 
-//    @NotNull
-//    @NotBlank
     private String description;
 
+    @NotNull
     @FutureOrPresent
     private LocalDateTime startedAt;
 
+    @NotNull
     @FutureOrPresent
     private LocalDateTime finishedAt;
 

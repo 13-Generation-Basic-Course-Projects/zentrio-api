@@ -43,7 +43,7 @@ public class CommentAnnouncementServiceImplement implements CommentAnnouncementS
         UUID memberId= memberRepository.getOneMemberId(userId(),announcement.getBoardId());
         CommentAnnouncementResponse commentAnnouncementResponse = null;
         if (pmId != null){
-            commentAnnouncementResponse=   commentRepository.createCommentAnnouncement(announcement.getAnnouncementId(),commentAnnouncementRequest, LocalDateTime.now(), pmId);
+         return   commentAnnouncementResponse=   commentRepository.createCommentAnnouncement(announcement.getAnnouncementId(),commentAnnouncementRequest, LocalDateTime.now(), pmId);
         }
         if (memberId != null){
             commentAnnouncementResponse=    commentRepository.createCommentAnnouncement(announcement.getAnnouncementId(),commentAnnouncementRequest, LocalDateTime.now(), memberId);
