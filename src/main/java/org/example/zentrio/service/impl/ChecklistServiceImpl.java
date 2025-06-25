@@ -93,20 +93,25 @@ ChecklistServiceImpl implements ChecklistService {
         System.out.println("userId" + userId);
 
 //      Leader — limited access (only to their own tasks)
-        if (roles.contains(RoleName.ROLE_LEADER.toString())) {
-            UUID leaderMemberId = boardRepository.getTeamLeaderMemberIdByUserIdAndBoardId(userId, boardId);
-            System.out.println("roleLeader" + leaderMemberId);
-            // Fetch the task
-            Task task = taskService.getTaskById(taskId);
-            if (task == null) {
-                throw new NotFoundException("Task with ID " + taskId + " not found.");
-            }
-
-            // Validate that the leader created the task
-//            if (!task.getCreatedBy().equals(leaderMemberId)) {
-//                throw new ForbiddenException("Team Leader can only manage checklists for tasks they created.");
+//        if (roles.contains(RoleName.ROLE_LEADER.toString())) {
+//            UUID leaderMemberId = boardRepository.getTeamLeaderMemberIdByUserIdAndBoardId(userId, boardId);
+//            System.out.println("roleLeader" + leaderMemberId);
+//            // Fetch the task
+//            Task task = taskService.getTaskById(taskId);
+//            if (task == null) {
+//                throw new NotFoundException("Task with ID " + taskId + " not found.");
 //            }
+//
+//            // Validate that the leader created the task
+////            if (!task.getCreatedBy().equals(leaderMemberId)) {
+////                throw new ForbiddenException("Team Leader can only manage checklists for tasks they created.");
+////            }
+//
+//            return;
+//        }
 
+        String role = memberRepository.getRoleInTask(boardId,userId,taskId);
+        if(RoleName.ROLE_MANAGER.toString().equals(role) || RoleName.ROLE_LEADER.toString().equals(role)){
             return;
         }
 
