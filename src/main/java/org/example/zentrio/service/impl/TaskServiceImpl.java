@@ -102,7 +102,9 @@ public class TaskServiceImpl implements TaskService {
 
     private void validateRoleManageTask(UUID boardId, UUID userId) {
         List<String> roles = roleRepository.getRolesNameByBoardIdAndUserId(boardId, userId);
+        System.out.println("Role in mangereaaaaaaaaaaaaa " + roles);
 
+        System.out.println("user in mangereaaaaaaaaaaaaaa" + userId);
         if (roles == null || roles.isEmpty()) {
             throw new ForbiddenException("You are not a member of this board");
         }
@@ -141,6 +143,8 @@ public class TaskServiceImpl implements TaskService {
 
         // Determine the role of the user in the board
         List<String> roles = roleRepository.getRolesNameByBoardIdAndUserId(board.getBoardId(), userId); // returns "MANAGER" or "TEAM_LEADER"
+
+
 
         UUID creatorMemberId;
 
@@ -217,6 +221,7 @@ public class TaskServiceImpl implements TaskService {
         // Step 2: Get current user ID
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
 
+        System.out.println("user id" + userId);
         // Step 3: Validate user has permission role (Manager or Team Leader)
         validateRoleManageTask(taskRequest.getBoardId(), userId);
 
