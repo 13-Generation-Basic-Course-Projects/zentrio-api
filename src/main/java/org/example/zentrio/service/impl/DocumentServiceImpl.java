@@ -526,70 +526,35 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public ResponseEntity<?> downloadFolderAsZip(UUID documentId, String accessToken) {
+        // Step 1: Lookup document
         Document document = documentRepository.getDocumentByDocumentId(documentId);
         if (document == null) {
             throw new NotFoundException("Document not found with ID: " + documentId);
         }
 
-        String folderId = document.getFolderId(); // or getFileId() if that's more accurate
+        String folderId = document.getFolderId(); // or getFileId() if preferred
+        String documentType = document.getDocumentType();
+        String folderName = document.getDescription();
 
-        if (!"application/vnd.google-apps.folder".equals(document.getDocumentType())) {
+        if (!"application/vnd.google-apps.folder".equals(documentType)) {
             throw new NotFoundException("The provided ID does not refer to a folder.");
         }
 
         try {
             Drive drive = createDriveService(accessToken);
 
-            // Step 1: List all files inside the folder
-            FileList fileList = drive.files().list()
-                    .setQ("'" + folderId + "' in parents and trashed = false")
-                    .setFields("files(id, name, mimeType)")
-                    .execute();
-
-            List<File> files = fileList.getFiles();
-
-//
-
-
-            ByteArrayOutputStream zipOutputStream = new ByteArrayOutputStream();
-            ZipOutputStream zos = new ZipOutputStream(zipOutputStream);
-
-            for (File file : files) {
-                String fileId = file.getId();
-                String mimeType = file.getMimeType();
-                String fileName = file.getName();
-                ByteArrayOutputStream fileOutput = new ByteArrayOutputStream();
-
-                if (mimeType.startsWith("application/vnd.google-apps.")) {
-                    String exportMimeType = getExportMimeType(mimeType);
-                    String fileExtension = getFileExtension(exportMimeType);
-
-                    if (exportMimeType != null) {
-                        drive.files().export(fileId, exportMimeType)
-                                .executeMediaAndDownloadTo(fileOutput);
-                        fileName += fileExtension;
-                    } else {
-                        continue; // skip unsupported Google-native type
-                    }
-                } else {
-                    // Binary files
-                    drive.files().get(fileId)
-                            .executeMediaAndDownloadTo(fileOutput);
-                }
-
-                // Write to ZIP
-                ZipEntry zipEntry = new ZipEntry(fileName);
-                zos.putNextEntry(zipEntry);
-                zos.write(fileOutput.toByteArray());
-                zos.closeEntry();
+            // Step 2: ZIP folder contents (including nested files/folders)
+            ByteArrayOutputStream zipOutput = new ByteArrayOutputStream();
+            try (ZipOutputStream zipStream = new ZipOutputStream(zipOutput)) {
+                zipFolderContents(drive, folderId, folderName + "/", zipStream);
             }
 
-            zos.close();
+            String zipFileName = URLEncoder.encode(folderName + ".zip", StandardCharsets.UTF_8).replace("+", "%20");
 
             return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + zipFileName)
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"folder.zip\"")
-                    .body(zipOutputStream.toByteArray());
+                    .body(zipOutput.toByteArray());
 
         } catch (GoogleJsonResponseException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -599,7 +564,6 @@ public class DocumentServiceImpl implements DocumentService {
                     .body("Download failed: " + e.getMessage());
         }
     }
-
 
 
     @Override
@@ -614,6 +578,49 @@ public class DocumentServiceImpl implements DocumentService {
         }
         return documentList;
     }
+
+    private void zipFolderContents(Drive drive, String folderId, String pathPrefix, ZipOutputStream zos) throws IOException {
+        FileList fileList = drive.files().list()
+                .setQ("'" + folderId + "' in parents and trashed = false")
+                .setFields("files(id, name, mimeType)")
+                .setSupportsAllDrives(true)
+                .execute();
+
+        for (File file : fileList.getFiles()) {
+            String fileId = file.getId();
+            String name = file.getName();
+            String mimeType = file.getMimeType();
+
+            if ("application/vnd.google-apps.folder".equals(mimeType)) {
+                zipFolderContents(drive, fileId, pathPrefix + name + "/", zos); // Recursively zip subfolder
+            } else {
+                ByteArrayOutputStream fileOutput = new ByteArrayOutputStream();
+
+                if (mimeType.startsWith("application/vnd.google-apps.")) {
+                    String exportMimeType = getExportMimeType(mimeType);
+                    String fileExtension = getFileExtension(exportMimeType);
+
+                    if (exportMimeType != null) {
+                        drive.files().export(fileId, exportMimeType).executeMediaAndDownloadTo(fileOutput);
+                        name += fileExtension;
+                    } else {
+                        continue; // skip unsupported formats
+                    }
+                } else {
+                    drive.files().get(fileId).executeMediaAndDownloadTo(fileOutput);
+                }
+
+                ZipEntry zipEntry = new ZipEntry(pathPrefix + name);
+                zos.putNextEntry(zipEntry);
+                zos.write(fileOutput.toByteArray());
+                zos.closeEntry();
+            }
+        }
+    }
+
+
+
+
 
 
 }

@@ -7,7 +7,6 @@ import org.example.zentrio.exception.ForbiddenException;
 import org.example.zentrio.exception.NotFoundException;
 import org.example.zentrio.model.Announcement;
 import org.example.zentrio.model.AppUser;
-import org.example.zentrio.model.Comment;
 import org.example.zentrio.repository.AnnouncementRepository;
 import org.example.zentrio.repository.CommentRepository;
 import org.example.zentrio.repository.MemberRepository;
@@ -43,7 +42,7 @@ public class CommentAnnouncementServiceImplement implements CommentAnnouncementS
         UUID memberId= memberRepository.getOneMemberId(userId(),announcement.getBoardId());
         CommentAnnouncementResponse commentAnnouncementResponse = null;
         if (pmId != null){
-            commentAnnouncementResponse=   commentRepository.createCommentAnnouncement(announcement.getAnnouncementId(),commentAnnouncementRequest, LocalDateTime.now(), pmId);
+        return     commentAnnouncementResponse=   commentRepository.createCommentAnnouncement(announcement.getAnnouncementId(),commentAnnouncementRequest, LocalDateTime.now(), pmId);
         }
         if (memberId != null){
             commentAnnouncementResponse=    commentRepository.createCommentAnnouncement(announcement.getAnnouncementId(),commentAnnouncementRequest, LocalDateTime.now(), memberId);
