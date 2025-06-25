@@ -35,6 +35,8 @@ public interface AnnouncementRepository {
             @Result(property = "boardId", column = "bord_id"),
             @Result(property = "reacts", column = "announcement_id",
             many = @Many(select = "org.example.zentrio.repository.ReactRepository.GetAllReactAnnouncementIdById")),
+            @Result(property = "comments", column = "announcement_id",
+            many = @Many(select = "org.example.zentrio.repository.CommentRepository.getAllAnnouncementComments")),
     })
     Announcement createAnnouncement(@Param("request") AnnouncementRequest request, UUID creator);
 

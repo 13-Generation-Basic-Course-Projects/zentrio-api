@@ -73,6 +73,15 @@ public interface MemberRepository {
 //    @ResultMap("memberMapper")
     UUID getMemberId(UUID userId, UUID boardId);
 
+    @Select("""
+                     SELECT DISTINCT member_id FROM members m
+                          JOIN roles r ON r.role_id= m.role_id
+                           WHERE m.user_id = #{userId}
+                     AND m.board_id = #{boardId} Limit 1
+            """)
+//    @ResultMap("memberMapper")
+    UUID getOneMemberId(UUID userId, UUID boardId);
+
 
     @Select("""
               SELECT member_id FROM members m
@@ -145,5 +154,15 @@ public interface MemberRepository {
       WHERE r.role_name='ROLE_MANAGER' AND m.board_id=#{boardId}
       """)
     String getPmData(UUID boardId);
+
+    @Select("""
+        
+            SELECT   member_id FROM members m
+                     JOIN roles r ON r.role_id= m.role_id
+        WHERE m.user_id = #{uuid}
+          AND m.board_id = #{boardId};
+        
+        """)
+    List<UUID> getAllMemberId(UUID uuid, UUID boardId);
 
 }

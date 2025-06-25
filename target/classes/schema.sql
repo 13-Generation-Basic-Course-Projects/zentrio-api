@@ -169,7 +169,8 @@ CREATE TABLE comments
     content      TEXT NOT NULL,
     comment_date TIMESTAMP        DEFAULT CURRENT_TIMESTAMP,
     commented_by UUID REFERENCES members (member_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    checklist_id UUID REFERENCES checklists (checklist_id) ON DELETE CASCADE ON UPDATE CASCADE
+    checklist_id UUID REFERENCES checklists (checklist_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    announcement_id uuid references announcements(announcement_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 
@@ -417,3 +418,15 @@ CREATE TABLE refresh_tokens (
 );
 
 SELECT * FROM refresh_tokens WHERE token = '1//0eu4AEfPYmPYzCgYIARAAGA4SNwF-L9Ir5uUUol-WIze4hbWlEhSgDmNFOYZVPM9C1VlQ1mlmIOxejZNCIPouDB8_y1H-mggELxQ';
+
+alter table comments add  column  announcement_id uuid references announcements(announcement_id) ON UPDATE CASCADE ON DELETE CASCADE ;
+
+CREATE TABLE reports_version (
+                         report_version_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                         board_id UUID NOT NULL,
+                         version INTEGER,
+                         data JSONB, -- your full JSON here
+                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                         report_id UUID NOT NULL  REFERENCES  reports(report_id) ON UPDATE CASCADE ON DELETE CASCADE
+
+);

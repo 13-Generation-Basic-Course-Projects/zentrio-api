@@ -312,7 +312,7 @@
     </div>
 
     <!--Under Review-->
-<div style="width: 595px; height: 842px; background-color: white; display: flex; flex-direction: column; justify-content: space-between;"
+    <div style="width: 595px; height: 842px; background-color: white; display: flex; flex-direction: column; justify-content: space-between;"
          th:each="group : ${groupedTasks}" th:if="${group.stage == 'UNDER_REVIEW'}">
         <p style="width: 199px; background-color: #59BAD5; height: 40px; border-top-right-radius: 12px; border-bottom-left-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 24px; color: white;">
             <span style="font-weight: bold;">Reports</span>
@@ -322,7 +322,7 @@
             <div style="width: 100%; display: flex; justify-content: center;">
                 <div style="height: 100%; display: flex; flex-direction: column; width: 85%;">
                     <p>
-                        III.&nbsp;&nbsp;UNDER REVIEW Information
+                        III.&nbsp;&nbsp;Done Information
                     </p>
                     <div>
                         <div>
@@ -339,7 +339,10 @@
                                         <tbody style="background-color: white;">
                                         <tr th:each="task : ${group.tasks}" style="height: 32px; border-top: 1px solid black;">
                                             <td style="padding-left: 27px; border-right: 1px solid black;" th:text="${task.title}">Task Title</td>
-                                            <td style="padding-left: 27px; border-right: 1px solid black;" th:text="${task.teamLeader?.name}">Lead</td>
+                                            <td style="padding-left: 27px; border-right: 1px solid black;"
+                                                th:text="${task.teamLeader != null ? task.teamLeader.username : 'N/A'}">
+                                                Lead
+                                            </td>
                                             <td style="padding-left: 27px;" th:text="${#lists.size(task.allChecklists)}">0</td>
                                         </tr>
                                         </tbody>

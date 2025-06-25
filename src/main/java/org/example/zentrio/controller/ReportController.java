@@ -1,5 +1,6 @@
 package org.example.zentrio.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -8,7 +9,10 @@ import org.example.zentrio.dto.response.*;
 import org.example.zentrio.model.AllMember;
 import org.example.zentrio.model.AllTasks;
 import org.example.zentrio.model.Report;
+import org.example.zentrio.model.VersionReport;
 import org.example.zentrio.repository.MemberRepository;
+import org.example.zentrio.repository.ReportRepository;
+import org.example.zentrio.repository.TaskRepository;
 import org.example.zentrio.service.ReportService;
 import org.example.zentrio.service.impl.PdfService;
 import org.springframework.http.HttpHeaders;
@@ -32,12 +36,15 @@ public class ReportController {
     private final ReportService reportService;
     private final PdfService   pdfService;
     private  final MemberRepository memberRepository;
+    private final ReportRepository reportRepository;
+
+
     @GetMapping("/boards/{board-id}")
     @Operation(summary = "Get report by board id")
     public ResponseEntity<ApiResponse<Report>> getReportByBoardId(@PathVariable("board-id") UUID boardId) {
         ApiResponse<Report> apiResponse = ApiResponse.<Report>builder()
                 .success(true)
-                .message("Get profile successfully")
+                .message("Get report successfully")
                 .payload(reportService.getReportByBoardId(boardId))
                 .status(HttpStatus.OK)
                 .timestamp(LocalDateTime.now())
@@ -108,6 +115,12 @@ public class ReportController {
 public ResponseEntity<byte[]> generateProjectReport(@PathVariable("board-id") UUID boardId) {
     Report report = reportService.getReportByBoardId(boardId);
     String teamLead = memberRepository.getPmData(boardId);
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+    Map<String, Object> reportMap = objectMapper.convertValue(report, Map.class);
+
+    reportRepository.saveVersionReport(reportMap,report.getBoardId(),report.getVersion(),LocalDateTime.now(), report.getReportId());
 
     List<StageSummary> stageSummaries = new ArrayList<>();
     List<StageTaskGroup> groupedTasks = report.getGroupedTasks();
@@ -186,7 +199,7 @@ public ResponseEntity<byte[]> generateProjectReport(@PathVariable("board-id") UU
     data.put("creationDate", report.getBoardData().getCreatedAt());
     data.put("version", report.getVersion());
     data.put("allMembers", report.getAllMembers());
-    data.put("allTasks", groupedTasks);
+    data.put("groupedTasks", groupedTasks);
     data.put("taskCount", taskCount);
     data.put("stageSummaries", stageSummaries);
     data.put("monthlySummaries", monthlySummaries);
@@ -206,6 +219,20 @@ public ResponseEntity<byte[]> generateProjectReport(@PathVariable("board-id") UU
             .body(pdf);
 }
 
+
+    @GetMapping("/version/{report_id}")
+    @Operation(summary = "Get version report by board id")
+    public ResponseEntity<ApiResponse<List<VersionReport>>> getVersionReportByReportId(@PathVariable("report_id") UUID reportId) {
+        ApiResponse<List<VersionReport>> apiResponse = ApiResponse.<List<VersionReport>>builder()
+                .success(true)
+                .message("Get version report successfully")
+                .payload(reportService.getVersionReportByReportId(reportId))
+                .status(HttpStatus.OK)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+
+    }
 
 
 
