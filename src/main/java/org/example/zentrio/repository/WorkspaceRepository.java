@@ -155,6 +155,7 @@ public interface WorkspaceRepository {
         SELECT * FROM workspaces
         WHERE created_by = #{userId}
     """)
+    @ResultMap("workspaceMapper")
     List<Workspace> getAllWorkspacesByUserId(UUID userId);
 }
 

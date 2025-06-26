@@ -296,5 +296,6 @@ public interface BoardRepository {
     @Select("""
         SELECT * FROM boards WHERE workspace_id = #{workspaceId}
     """)
+    @ResultMap("boardMapper")
     List<Board> getAllBoardByWorkspaceId(UUID workspaceId);
 }

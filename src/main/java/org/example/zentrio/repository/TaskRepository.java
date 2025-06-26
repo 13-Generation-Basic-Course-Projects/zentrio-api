@@ -345,6 +345,7 @@ public interface TaskRepository {
         SELECT *  FROM tasks
         WHERE board_id = #{boardId}
     """)
+    @ResultMap("taskMapper")
     List<Task> getAllTasksByBoardId(UUID boardId);
 
 }
