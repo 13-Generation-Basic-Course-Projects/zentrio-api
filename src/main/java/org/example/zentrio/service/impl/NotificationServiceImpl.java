@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -29,6 +30,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final TaskRepository taskRepository;
     private final BoardRepository boardRepository;
     private final ChecklistRepository checklistRepository;
+    private final SimpMessagingTemplate messagingTemplate;
     @Value("${onesignal.app-id}")
     private String APP_ID;
 
@@ -122,6 +124,14 @@ public class NotificationServiceImpl implements NotificationService {
             notification.setSenderId(senderUUID);
             notification.setReceiverId(receiverUUID);
             notificationRepository.insertNotification(notification);
+
+//           📡 Send real-time WebSocket notification
+
+            messagingTemplate.convertAndSendToUser(
+                    receiverUUID.toString(),
+                    "/topic/notifications",
+                    notification
+            );
 
         }
     }

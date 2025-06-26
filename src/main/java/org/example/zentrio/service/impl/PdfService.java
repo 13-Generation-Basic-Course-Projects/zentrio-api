@@ -42,24 +42,4 @@ public class PdfService {
         }
     }
 
-//    private void addFontsToRenderer(ITextRenderer renderer) {
-//        try {
-//            ClassLoader classLoader = getClass().getClassLoader();
-//            String fontPath = "static/fonts/Exile-Regular.ttf";
-//
-//            if (classLoader.getResource(fontPath) != null) {
-//                renderer.getFontResolver().addFont(
-//                        fontPath,
-//                        BaseFont.IDENTITY_H,
-//                        BaseFont.EMBEDDED
-//                );
-//                System.out.println("Loaded font: " + fontPath);
-//            } else {
-//                System.err.println("Font not found: " + fontPath);
-//            }
-//
-//        } catch (Exception e) {
-//            System.err.println("Font loading failed: " + e.getMessage());
-//        }
-//    }
 }

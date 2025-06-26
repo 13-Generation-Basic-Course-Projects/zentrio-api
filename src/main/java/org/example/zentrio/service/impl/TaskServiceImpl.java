@@ -207,6 +207,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Task updateTaskByIdWithBoardIdAndGanttBarId(TaskRequest taskRequest, UUID taskId) {
+        System.out.println("Task request from frontend: " + taskRequest);
         Board board = boardRepository.getBoardByBoardId(taskRequest.getBoardId());
         if (board == null) {
             throw new NotFoundException("Board with ID " + taskRequest.getBoardId() + " not found");
@@ -237,6 +238,8 @@ public class TaskServiceImpl implements TaskService {
         if (role.contains(RoleName.ROLE_MANAGER.toString()) || role.contains(RoleName.ROLE_LEADER.toString())) {
             taskAfterUpdate = taskRepository.updateTaskByIdWithBoardIdAndGanttBarId(taskRequest, taskId, taskRequest.getBoardId(), taskRequest.getGanttBarId(), LocalDateTime.now());
         }
+//            taskAfterUpdate = taskRepository.updateTaskByIdWithBoardIdAndGanttBarId(taskRequest, taskId, taskRequest.getBoardId(), taskRequest.getGanttBarId(), LocalDateTime.now());
+
 
         // Step 7: Update the task in the DB
         //  return taskRepository.updateTaskByIdWithBoardIdAndGanttBarId(taskRequest, taskId, taskRequest.getBoardId(), taskRequest.getGanttBarId(),LocalDateTime.now());
@@ -325,7 +328,7 @@ public class TaskServiceImpl implements TaskService {
                 "You have been assigned as a leader for task" + task.getTitle(),
                 task.getBoardId(),
                 taskId,
-                null,
+                assignerMemberId,
                 NotificationTypes.TASK_ASSIGNED
         );
     }
