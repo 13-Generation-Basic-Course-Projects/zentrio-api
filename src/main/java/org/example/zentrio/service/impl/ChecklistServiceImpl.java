@@ -5,6 +5,8 @@ import io.minio.errors.ErrorResponseException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.example.zentrio.dto.request.ChecklistRequest;
+import org.example.zentrio.dto.request.ChecklistTimeRequest;
+import org.example.zentrio.dto.request.ChecklistTitleRequest;
 import org.example.zentrio.enums.ChecklistStatus;
 import org.example.zentrio.enums.ImageExtension;
 import org.example.zentrio.enums.RoleName;
@@ -155,6 +157,7 @@ ChecklistServiceImpl implements ChecklistService {
         } else {
             throw new ForbiddenException("You do not have permission to create checklist.");
         }
+        System.out.println("userId" + memberId);
 
 
         if(memberId == null) {
@@ -190,13 +193,29 @@ ChecklistServiceImpl implements ChecklistService {
     }
 
     @Override
-    public Checklist updateChecklistByIdAndTaskId(ChecklistRequest checklistRequest, UUID checklistId) {
+    public Checklist updateChecklistByIdAndTaskId(ChecklistTitleRequest checklistRequest, UUID checklistId) {
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         Task task = taskService.getTaskById(checklistRequest.getTaskId());
         validateChecklistIdAndTaskId(checklistId, checklistRequest.getTaskId());
-        validateChecklistWithTaskTime(checklistRequest, task);
+
         validateChecklistAccess(checklistRequest.getTaskId(), task.getBoardId(), userId);
         return checklistRepository.updateChecklistByIdAndTaskId(checklistRequest, checklistId, checklistRequest.getTaskId(),LocalDateTime.now());
+    }
+    @Override
+    public Checklist updateChecklistDateLineByIdAndTaskId(ChecklistTimeRequest checklistRequest) {
+        UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+        Checklist checklist = getChecklistChecklistId(checklistRequest.getChecklistId());
+        Task task = taskService.getTaskById(checklist.getTaskId());
+        if (checklistRequest.getFinishedAt().isAfter(task.getFinishedAt())) {
+            throw new ForbiddenException("checklist finished cannot after task finished " );
+        }
+        if (checklistRequest.getFinishedAt().isBefore(task.getStartedAt())) {
+            throw new ForbiddenException("checklist finished cannot before task state at " );
+        }
+        validateChecklistIdAndTaskId(checklist.getChecklistId(), checklist.getTaskId());
+
+        validateChecklistAccess(checklist.getTaskId(), task.getBoardId(), userId);
+        return checklistRepository.updateChecklistDateLineByIdAndTaskId(checklistRequest);
     }
 
     @Override
@@ -253,7 +272,12 @@ ChecklistServiceImpl implements ChecklistService {
     @SneakyThrows
     @Override
     public FileMetadata uploadChecklistCoverImage(UUID checklistId, MultipartFile file) {
-        getChecklistChecklistId(checklistId);
+       Checklist checklist=  getChecklistChecklistId(checklistId);
+       Task task = taskService.getTaskById(checklist.getTaskId());
+        UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+        validateChecklistIdAndTaskId(checklistId, task.getTaskId());
+
+        validateChecklistAccess(task.getTaskId(), task.getBoardId(), userId);
         List<String> imageExtensions = new ArrayList<>();
 
         for (ImageExtension imageExtension : ImageExtension.values()) {
@@ -381,6 +405,8 @@ ChecklistServiceImpl implements ChecklistService {
         }
         return  null;
     }
+
+
 
 
 }

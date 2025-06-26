@@ -7,6 +7,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.example.zentrio.dto.request.ChecklistRequest;
+import org.example.zentrio.dto.request.ChecklistTimeRequest;
+import org.example.zentrio.dto.request.ChecklistTitleRequest;
 import org.example.zentrio.dto.response.ApiResponse;
 import org.example.zentrio.enums.ChecklistStatus;
 import org.example.zentrio.enums.Status;
@@ -80,12 +82,26 @@ public class ChecklistController {
     @Operation(summary = "Update checklist by ID and task ID ", description = "Updated checklist by ID with specific tasks ID")
     @PutMapping("/{checklist-id}")
     public ResponseEntity<ApiResponse<Checklist>> updateChecklistByIdAndTaskId(
-            @Valid @RequestBody ChecklistRequest checklistRequest,
+            @Valid @RequestBody ChecklistTitleRequest checklistRequest,
             @PathVariable("checklist-id") UUID checklistId) {
         ApiResponse<Checklist> apiResponse = ApiResponse.<Checklist>builder()
                 .success(true)
                 .message("Updated checklist successfully")
                 .payload(checklistService.updateChecklistByIdAndTaskId(checklistRequest, checklistId))
+                .status(HttpStatus.OK)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+    @Operation(summary = "Update checklist date line by ID and task ID ", description = "Updated checklist by ID with specific tasks ID")
+    @PutMapping("/date-line")
+    public ResponseEntity<ApiResponse<Checklist>> updateChecklistDateLineByIdAndTaskId(
+            @Valid @RequestBody ChecklistTimeRequest checklistRequest) {
+        ApiResponse<Checklist> apiResponse = ApiResponse.<Checklist>builder()
+                .success(true)
+                .message("Updated date line checklist successfully")
+                .payload(checklistService.updateChecklistDateLineByIdAndTaskId(checklistRequest))
                 .status(HttpStatus.OK)
                 .timestamp(LocalDateTime.now())
                 .build();

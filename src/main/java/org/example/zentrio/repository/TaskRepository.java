@@ -2,6 +2,8 @@ package org.example.zentrio.repository;
 
 import org.apache.ibatis.annotations.*;
 import org.example.zentrio.dto.request.TaskRequest;
+import org.example.zentrio.dto.request.TaskTimeRequest;
+import org.example.zentrio.dto.request.TaskTitleRequest;
 import org.example.zentrio.dto.response.*;
 import org.example.zentrio.model.Task;
 
@@ -69,8 +71,6 @@ public interface TaskRepository {
                 UPDATE tasks SET
                                  title = #{request.title},
                                  description = #{request.description},
-                                 started_at = #{request.startedAt},
-                                 finished_at = #{request.finishedAt},
                                  updated_at = #{updatedAt}
                 WHERE task_id = #{taskId}
                 AND board_id = #{boardId}
@@ -78,7 +78,7 @@ public interface TaskRepository {
                 RETURNING *
             """)
     @ResultMap("taskMapper")
-    Task updateTaskByIdWithBoardIdAndGanttBarId(@Param("request") TaskRequest taskRequest, UUID taskId, UUID boardId, UUID ganttBarId, LocalDateTime updatedAt);
+    Task updateTaskByIdWithBoardIdAndGanttBarId(@Param("request") TaskTitleRequest taskRequest, UUID taskId, UUID boardId, UUID ganttBarId, LocalDateTime updatedAt);
 
     @Select("""
                 DELETE FROM tasks
@@ -348,4 +348,13 @@ public interface TaskRepository {
     @ResultMap("taskMapper")
     List<Task> getAllTasksByBoardId(UUID boardId);
 
+
+    @Select("""
+            UPDATE tasks SET finished_at = #{re.finishedAt},
+                              updated_at= #{now}
+            WHERE task_id= #{re.taskId}
+            RETURNING *
+            """)
+    @ResultMap("taskMapper")
+    Task updateDateLineTaskById(@Param("re") TaskTimeRequest taskTimeRequest, LocalDateTime now);
 }
