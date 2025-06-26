@@ -34,7 +34,8 @@ public interface TaskRepository {
                     one = @One(select = "getDataOfUserCreator")),
             @Result(property = "teamLeader", column = "task_id",
                     one = @One(select = "getTeamLeadData")),
-
+            @Result(property = "feedbacks", column = "task_id",
+                    many = @Many(select = "org.example.zentrio.repository.FeedbackRepository.getAllFeedback")),
     })
     @Select("""
             INSERT INTO tasks(title, description,started_at, finished_at, stage, board_id, gantt_bar_id, created_by)
@@ -344,6 +345,7 @@ public interface TaskRepository {
         SELECT *  FROM tasks
         WHERE board_id = #{boardId}
     """)
+    @ResultMap("taskMapper")
     List<Task> getAllTasksByBoardId(UUID boardId);
 
 }

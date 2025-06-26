@@ -31,6 +31,7 @@ public class Task {
     private UUID createdBy;
     private MemberResponseData creator;
     private MemberResponseData teamLeader;
+    private List<Feedback> feedbacks;
 
 
 }

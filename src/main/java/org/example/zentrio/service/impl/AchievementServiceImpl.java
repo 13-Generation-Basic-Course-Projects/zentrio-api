@@ -78,8 +78,8 @@ public class AchievementServiceImpl implements AchievementService {
         Map<String, Object> achievementData = new HashMap<>();
 
         for (Workspace workspace : workspaces) {
+            System.out.println(workspace);
             List<Board> boards = boardRepository.getAllBoardByWorkspaceId(workspace.getWorkspaceId());
-
             for (Board board : boards) {
                 List<Task> tasks = taskRepository.getAllTasksByBoardId(board.getBoardId());
                 System.out.println(tasks);
