@@ -106,7 +106,7 @@ public interface WorkspaceRepository {
 
     // Get boards the user joined within the workspace
     @Select("""
-                SELECT b.board_id, b.title, b.description, b.is_favourite,
+                SELECT b.board_id, b.title, b.cover, b.image_url, b.description, b.is_favourite,
                 STRING_AGG(r.role_name, ', ') AS role_name,
                 b.created_at, b.updated_at, b.workspace_id, m.user_id
                 FROM boards b
@@ -121,6 +121,8 @@ public interface WorkspaceRepository {
     @Results(id = "joinBoardMapper", value = {
             @Result(property = "boardId", column = "board_id"),
             @Result(property = "title", column = "title"),
+            @Result(property = "cover", column = "cover"),
+            @Result(property = "imageUrl", column = "image_url"),
             @Result(property = "description", column = "description"),
             @Result(property = "isFavourite", column = "is_favourite"),
             @Result(property = "role", column = "{userId=user_id,boardId=board_id}",

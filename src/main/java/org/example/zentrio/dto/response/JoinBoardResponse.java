@@ -13,6 +13,8 @@ import java.util.UUID;
 public class JoinBoardResponse {
     private UUID boardId;
     private String title;
+    private String cover;
+    private String imageUrl;
     private String description;
     private Boolean isFavourite;
     private List<String> role;
