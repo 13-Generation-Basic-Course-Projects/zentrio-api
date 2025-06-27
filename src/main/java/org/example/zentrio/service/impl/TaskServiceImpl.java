@@ -3,6 +3,8 @@ package org.example.zentrio.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.example.zentrio.dto.request.TaskRequest;
+import org.example.zentrio.dto.request.TaskTimeRequest;
+import org.example.zentrio.dto.request.TaskTitleRequest;
 import org.example.zentrio.dto.response.TaskResponse;
 import org.example.zentrio.enums.NotificationTypes;
 import org.example.zentrio.enums.RoleName;
@@ -206,8 +208,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Task updateTaskByIdWithBoardIdAndGanttBarId(TaskRequest taskRequest, UUID taskId) {
-        System.out.println("Task request from frontend: " + taskRequest);
+    public Task updateTaskByIdWithBoardIdAndGanttBarId(TaskTitleRequest taskRequest, UUID taskId) {
         Board board = boardRepository.getBoardByBoardId(taskRequest.getBoardId());
         if (board == null) {
             throw new NotFoundException("Board with ID " + taskRequest.getBoardId() + " not found");
@@ -221,15 +222,17 @@ public class TaskServiceImpl implements TaskService {
 
         // Step 2: Get current user ID
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
-
-        System.out.println("user id" + userId);
-        // Step 3: Validate user has permission role (Manager or Team Leader)
-        validateRoleManageTask(taskRequest.getBoardId(), userId);
-
         Task taskAfterUpdate = new Task();
+        System.out.println("user id" + userId);
+        String manager= memberRepository.getRolePm(taskRequest.getBoardId(),userId);
+        System.out.println("manager" + manager);
+        if (manager != null) {
+            return  taskRepository.updateTaskByIdWithBoardIdAndGanttBarId(taskRequest, taskId, taskRequest.getBoardId(), taskRequest.getGanttBarId(), LocalDateTime.now());
+        }
+
 
         // Step 6: Validate timing and references
-        validateBoardAndGanttBarAndTaskTime(taskRequest.getBoardId(), taskRequest.getGanttBarId(), taskRequest);
+        //validateBoardAndGanttBarAndTaskTime(taskRequest.getBoardId(), taskRequest.getGanttBarId(), taskRequest);
         String role = memberRepository.getRoleInTask(task.getBoardId(), userId, task.getTaskId());
         System.out.println("role: " + role);
         if (role == null) {
@@ -238,13 +241,49 @@ public class TaskServiceImpl implements TaskService {
         if (role.contains(RoleName.ROLE_MANAGER.toString()) || role.contains(RoleName.ROLE_LEADER.toString())) {
             taskAfterUpdate = taskRepository.updateTaskByIdWithBoardIdAndGanttBarId(taskRequest, taskId, taskRequest.getBoardId(), taskRequest.getGanttBarId(), LocalDateTime.now());
         }
-//            taskAfterUpdate = taskRepository.updateTaskByIdWithBoardIdAndGanttBarId(taskRequest, taskId, taskRequest.getBoardId(), taskRequest.getGanttBarId(), LocalDateTime.now());
-
 
         // Step 7: Update the task in the DB
         //  return taskRepository.updateTaskByIdWithBoardIdAndGanttBarId(taskRequest, taskId, taskRequest.getBoardId(), taskRequest.getGanttBarId(),LocalDateTime.now());
         return taskAfterUpdate;
     }
+
+
+    @Override
+    public Task updateDateLineTaskById(TaskTimeRequest taskTimeRequest) {
+        Task task = getTaskById(taskTimeRequest.getTaskId());
+        GanttBar ganttBar= ganttBarRepository.getGanttBarByGanttBarId(task.getGanttBarId());
+        if (ganttBar == null) {
+            throw new NotFoundException("GanttBar with ID " + task.getGanttBarId() + " not found");
+        }
+        if (taskTimeRequest.getFinishedAt().isAfter(ganttBar.getFinishedAt())) {
+            throw new ForbiddenException("task finished at cannot be after gantt bar finished at");
+        }
+        if (taskTimeRequest.getFinishedAt().isBefore(ganttBar.getStartedAt())){
+            throw new ForbiddenException("task finished at cannot be before gantt bar finished at");
+        }
+
+        UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+        Task taskAfterUpdate = new Task();
+        System.out.println("user id" + userId);
+        String manager=  memberRepository.getRolePm(task.getBoardId(),userId);
+        if (manager != null) {
+            return  taskRepository.updateDateLineTaskById(taskTimeRequest, LocalDateTime.now());
+        }
+
+        String role = memberRepository.getRoleInTask(task.getBoardId(), userId, task.getTaskId());
+        System.out.println("role: " + role);
+        if (role == null) {
+            throw new ForbiddenException("Only manager or team leader can update in " + task.getTitle() + " can update it");
+        }
+        if (role.contains(RoleName.ROLE_MANAGER.toString()) || role.contains(RoleName.ROLE_LEADER.toString())) {
+            taskAfterUpdate = taskRepository.updateDateLineTaskById(taskTimeRequest, LocalDateTime.now());
+        }
+
+
+        return taskAfterUpdate;
+    }
+
+
 
 
     @Override
@@ -331,6 +370,40 @@ public class TaskServiceImpl implements TaskService {
                 assignerMemberId,
                 NotificationTypes.TASK_ASSIGNED
         );
+    }
+    @Override
+    public void acceptLeaderToTask(UUID taskId, UUID pmId, UUID teamLeadId) {
+        Task task = getTaskById(taskId);
+        if (taskRepository.isAlreadyAssigned(taskId)) {
+            throw new ConflictException("Task's with ID " + taskId + " is already assigned Leader");
+        }
+        UUID assigneeId=teamLeadId;
+
+        UUID currentUserId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+        UUID assignerMemberId =pmId;
+        Boolean userExistInBoard= boardRepository.getExistUserInBoard(assigneeId,task.getBoardId());
+        UUID leaderId = null;
+        if (userExistInBoard){
+            String roleManager = roleRepository.getRoleNameByBoardIdAndUserId(task.getBoardId(), assigneeId);
+            if (RoleName.ROLE_MANAGER.toString().equals(roleManager)) {
+                throw new BadRequestException("Cannot assign Project Manager!");
+            }
+
+            if (roleManager == null) {
+                leaderId = taskRepository.getLeaderIdByUserIdAndBoardId(assigneeId, task.getBoardId());
+
+                if (leaderId == null) {
+                    UUID roleId = roleRepository.getRoleIdByRoleName(RoleName.ROLE_LEADER.name());
+                    boardRepository.insertMember(assigneeId, task.getBoardId(), roleId);
+                }
+            }
+
+        }else {
+            throw new ForbiddenException("This user is not member in this board");
+        }
+        leaderId = taskRepository.getLeaderIdByUserIdAndBoardId(assigneeId, task.getBoardId());
+        taskRepository.insertTaskAssignment(taskId, assignerMemberId, leaderId);
+        updateProgressOfTaskById(taskId);
     }
 
     @Override

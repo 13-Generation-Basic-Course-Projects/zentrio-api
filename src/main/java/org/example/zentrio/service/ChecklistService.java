@@ -1,7 +1,10 @@
 package org.example.zentrio.service;
 
 
+import jakarta.validation.Valid;
 import org.example.zentrio.dto.request.ChecklistRequest;
+import org.example.zentrio.dto.request.ChecklistTimeRequest;
+import org.example.zentrio.dto.request.ChecklistTitleRequest;
 import org.example.zentrio.dto.response.ApiResponse;
 import org.example.zentrio.enums.ChecklistStatus;
 import org.example.zentrio.model.Checklist;
@@ -20,7 +23,7 @@ public interface ChecklistService {
 
     HashSet<Checklist> getAllChecklistsByTaskId(UUID taskId);
 
-    Checklist updateChecklistByIdAndTaskId(ChecklistRequest checklistRequest, UUID checklistId);
+    Checklist updateChecklistByIdAndTaskId(ChecklistTitleRequest checklistRequest, UUID checklistId);
 
     Checklist deleteChecklistByIdAndTaskId(UUID checklistId, UUID taskId);
 
@@ -37,4 +40,6 @@ public interface ChecklistService {
     HashSet<Checklist> getAllChecklistsByCurrentUser();
 
     Void moveChecklistOrder(UUID taskId, int newOrder, int oldOrder);
+
+    Checklist updateChecklistDateLineByIdAndTaskId( ChecklistTimeRequest checklistRequest);
 }

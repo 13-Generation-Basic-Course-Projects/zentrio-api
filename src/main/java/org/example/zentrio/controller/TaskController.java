@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.zentrio.dto.request.TaskRequest;
+import org.example.zentrio.dto.request.TaskTimeRequest;
+import org.example.zentrio.dto.request.TaskTitleRequest;
 import org.example.zentrio.dto.response.ApiResponse;
 import org.example.zentrio.dto.response.TaskResponse;
 import org.example.zentrio.enums.Stage;
@@ -93,12 +95,26 @@ public class TaskController {
     @Operation(summary = "Update task by ID with board ID AND gantt bar ID", description = "Updated task by ID with boards ID and gantt bars ID")
     @PutMapping("/{task-id}")
     public ResponseEntity<ApiResponse<Task>> updateTaskByIdWithBoardIdAndGanttBarId(
-            @Valid @RequestBody TaskRequest taskRequest,
+            @Valid @RequestBody TaskTitleRequest taskRequest,
             @PathVariable("task-id") UUID taskId) {
         ApiResponse<Task> apiResponse = ApiResponse.<Task>builder()
                 .success(true)
                 .message("Updated task by ID successfully")
                 .payload(taskService.updateTaskByIdWithBoardIdAndGanttBarId(taskRequest, taskId))
+                .status(HttpStatus.OK)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+    @Operation(summary = "Update date line  task by ID ", description = "Updated task by ")
+    @PutMapping("/date-line")
+    public ResponseEntity<ApiResponse<Task>> updateDateLineTaskById(
+            @Valid @RequestBody TaskTimeRequest updateDateLineTaskById) {
+        ApiResponse<Task> apiResponse = ApiResponse.<Task>builder()
+                .success(true)
+                .message("Updated task by ID successfully")
+                .payload(taskService.updateDateLineTaskById(updateDateLineTaskById))
                 .status(HttpStatus.OK)
                 .timestamp(LocalDateTime.now())
                 .build();
@@ -148,6 +164,23 @@ public class TaskController {
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
                 .message("Assigned role with task ID successfully")
+                .status(HttpStatus.OK)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+
+    @Operation(summary = "Accept role with task ID", description = "Assigned role leader tasks with specific users")
+    @PostMapping("/{task-id}/pm/{assigner_id}/members/{leader-id}")
+    public ResponseEntity<?> acceptLeaderToTask(
+            @PathVariable("task-id") UUID taskId,
+            @PathVariable("assigner_id") UUID pmId,
+            @PathVariable("leader-id") UUID teamLeadId) throws JsonProcessingException {
+        taskService.acceptLeaderToTask(taskId, pmId,teamLeadId);
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .success(true)
+                .message("Accept role with task ID successfully")
                 .status(HttpStatus.OK)
                 .timestamp(LocalDateTime.now())
                 .build();

@@ -1,8 +1,10 @@
 package org.example.zentrio.repository;
 
-import io.lettuce.core.dynamic.annotation.Param;
+
 import org.apache.ibatis.annotations.*;
 import org.example.zentrio.dto.request.ChecklistRequest;
+import org.example.zentrio.dto.request.ChecklistTimeRequest;
+import org.example.zentrio.dto.request.ChecklistTitleRequest;
 import org.example.zentrio.dto.response.ChecklistRespone;
 import org.example.zentrio.dto.response.MemberResponseData;
 import org.example.zentrio.model.Checklist;
@@ -65,14 +67,12 @@ public interface ChecklistRepository {
     @Select("""
                 UPDATE checklists SET title = #{checklistRequest.title},
                                       description = #{checklistRequest.description},
-                                      started_at = #{checklistRequest.startedAt},
-                                      finished_at = #{checklistRequest.finishedAt},
                                       updated_at = #{updatedAt}
                 WHERE checklist_id = #{checklistId} AND task_id = #{taskId}
                 RETURNING *
             """)
     @ResultMap("checklistMapper")
-    Checklist updateChecklistByIdAndTaskId(@Param("checklistRequest") ChecklistRequest checklistRequest, UUID checklistId, UUID taskId, LocalDateTime updatedAt);
+    Checklist updateChecklistByIdAndTaskId(@Param("checklistRequest") ChecklistTitleRequest checklistRequest, UUID checklistId, UUID taskId, LocalDateTime updatedAt);
 
     @Select("""
                 DELETE FROM checklists WHERE checklist_id = #{checklistId} AND task_id = #{taskId}
@@ -226,5 +226,13 @@ public interface ChecklistRepository {
     int getTaskAssignIdByTaskId(UUID taskId);
 
 
+    @Select("""
+    UPDATE checklists 
+    SET finished_at = #{re.finishedAt}
+    WHERE checklist_id = #{re.checklistId}
+    RETURNING *
+""")
+    @ResultMap("checklistMapper")
+    Checklist updateChecklistDateLineByIdAndTaskId(@Param("re") ChecklistTimeRequest checklistTimeRequest);
 
 }

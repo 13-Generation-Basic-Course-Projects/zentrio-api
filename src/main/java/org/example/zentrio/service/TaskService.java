@@ -3,7 +3,10 @@ package org.example.zentrio.service;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import jakarta.validation.Valid;
 import org.example.zentrio.dto.request.TaskRequest;
+import org.example.zentrio.dto.request.TaskTimeRequest;
+import org.example.zentrio.dto.request.TaskTitleRequest;
 import org.example.zentrio.dto.response.TaskResponse;
 import org.example.zentrio.enums.Stage;
 import org.example.zentrio.enums.Status;
@@ -19,7 +22,7 @@ public interface TaskService {
 
     HashSet<Task> getAllTasksByBoardIdAndGanttBarId(UUID boardId, UUID ganttBarId);
 
-    Task updateTaskByIdWithBoardIdAndGanttBarId(TaskRequest taskRequest, UUID taskId);
+    Task updateTaskByIdWithBoardIdAndGanttBarId(TaskTitleRequest taskRequest, UUID taskId);
 
     Task deleteTaskByIdWithBoardIdAndGanttBarId(UUID taskId, UUID boardId, UUID ganttBarId);
 
@@ -42,6 +45,10 @@ public interface TaskService {
     HashSet<TaskResponse> getTasksByBoardId(UUID boardId);
 
     Void moveOrder( UUID boardId,int newOrder, int oldOrder);
+
+    Task updateDateLineTaskById( TaskTimeRequest updateDateLineTaskById);
+
+    void acceptLeaderToTask(UUID taskId, UUID pmId, UUID teamLeadId);
 
 
 //    void assignLeaderRoleToTask(UUID taskId, UUID assignedId);

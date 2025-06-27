@@ -117,6 +117,17 @@ public interface MemberRepository {
     String getRolePmTeamLead(UUID boardId, UUID userId);
 
 
+
+    @Select("""
+            
+             SELECT roles.role_name   FROM roles
+            INNER JOIN members m ON m.role_id = roles.role_id
+            WHERE m.board_id = #{boardId}
+              AND m.user_id = #{userId}
+              AND role_name ='ROLE_MANAGER'
+            
+            """)
+    String getRolePm(UUID boardId, UUID userId);
     @Select("""
             SELECT  m.member_id FROM members m
                 INNER JOIN  roles r  ON r.role_id = m.role_id
