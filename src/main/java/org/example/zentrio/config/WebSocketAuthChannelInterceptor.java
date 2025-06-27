@@ -18,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -39,12 +40,16 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
             log.info("🔐 WebSocket CONNECT with Authorization: {}", token);
 
             if (token != null && token.startsWith("Bearer ")) {
+
+                log.info("TOKEN : {}", token);
                 token = token.substring(7);
                 try {
                     // works for static user ID
                     String email = jwtService.extractEmail(token);
                     AppUser user = appUserRepository.getUserByEmail(email);
+                    log.info("user: {}", user);
                     UUID userId = user.getUserId();
+
                     // ✅ Parse and validate token
                     Authentication authentication = new UsernamePasswordAuthenticationToken(
                             userId,    // principal
@@ -52,6 +57,9 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
                             Collections.emptyList() // authorities (roles)
                     );
                     accessor.setUser(authentication);
+
+                    log.info("Set WebSocket principal with name: {}", Objects.requireNonNull(accessor.getUser()).getName());
+
 
                     log.info("userId in websocket: {}", userId);
 
