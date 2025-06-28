@@ -287,5 +287,20 @@ public class TaskController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
+    @Operation(summary = "Resign team lead with task ID", description = "Resign team lead tasks")
+    @PutMapping("/{task-id}/members/{assignee-id}")
+    public ResponseEntity<?> resignLeaderToTask(
+            @PathVariable("task-id") UUID taskId,
+            @PathVariable("assignee-id") UUID assigneeId) throws JsonProcessingException {
+        taskService.resignLeaderToTask(taskId, assigneeId);
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .success(true)
+                .message("Resign role with task ID successfully")
+                .status(HttpStatus.OK)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
 
 }

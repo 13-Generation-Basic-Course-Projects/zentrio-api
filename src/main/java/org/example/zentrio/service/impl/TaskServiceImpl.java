@@ -407,6 +407,31 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    public void resignLeaderToTask(UUID taskId, UUID assigneeId) {
+        Task task = getTaskById(taskId);
+        if (!taskRepository.isAlreadyAssigned(taskId)) {
+            throw new ConflictException("Task's with ID " + taskId + " is not have  Leader");
+        }
+        UUID currentUserId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+        UUID assignerMemberId = boardRepository.getManagerMemberIdByUserIdAndBoardId(currentUserId, task.getBoardId());
+        if (assignerMemberId == null) {
+            throw new ForbiddenException("This user is pm  in this board");
+        }
+        Boolean userExistInBoard= boardRepository.getExistUserInBoard(assigneeId,task.getBoardId());
+        if (userExistInBoard) {
+            UUID leaderId = taskRepository.getLeaderIdByUserIdAndBoardId(assigneeId,task.getBoardId());
+            Boolean taskLeader= taskRepository.getTaskLeader(assignerMemberId, leaderId, taskId);
+            if (taskLeader) {
+                taskRepository.resignLeaderToTask(assignerMemberId, leaderId, taskId);
+            }else {
+                throw new ForbiddenException("This user is not leader  in this task");
+            }
+        }else  {
+            throw new ForbiddenException("This user is not member in this board");
+        }
+    }
+
+    @Override
     public void moveTask(UUID taskId, Stage stage) {
         // 1. Get current user and task info
         UUID currentUserId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
