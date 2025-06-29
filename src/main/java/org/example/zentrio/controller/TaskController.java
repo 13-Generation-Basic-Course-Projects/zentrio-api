@@ -172,10 +172,10 @@ public class TaskController {
 
 
     @Operation(summary = "Accept role with task ID", description = "Assigned role leader tasks with specific users")
-    @PostMapping("/{task-id}/pm/{assigner_id}/members/{leader-id}")
+    @PostMapping("/{task-id}/pm/{assigner-id}/members/{leader-id}")
     public ResponseEntity<?> acceptLeaderToTask(
             @PathVariable("task-id") UUID taskId,
-            @PathVariable("assigner_id") UUID pmId,
+            @PathVariable("assigner-id") UUID pmId,
             @PathVariable("leader-id") UUID teamLeadId) throws JsonProcessingException {
         taskService.acceptLeaderToTask(taskId, pmId,teamLeadId);
         ApiResponse<?> apiResponse = ApiResponse.builder()
@@ -281,6 +281,21 @@ public class TaskController {
                 .success(true)
                 .message("Move tasks successfully")
                 .payload(taskService.moveOrder(boardId,newOrder,oldOrder))
+                .status(HttpStatus.OK)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+    @Operation(summary = "Resign team lead with task ID", description = "Resign team lead tasks")
+    @PutMapping("/{task-id}/members/{assignee-id}")
+    public ResponseEntity<?> resignLeaderToTask(
+            @PathVariable("task-id") UUID taskId,
+            @PathVariable("assignee-id") UUID assigneeId) throws JsonProcessingException {
+        taskService.resignLeaderToTask(taskId, assigneeId);
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .success(true)
+                .message("Resign role with task ID successfully")
                 .status(HttpStatus.OK)
                 .timestamp(LocalDateTime.now())
                 .build();

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -85,7 +86,7 @@ public class AchievementController {
     @Operation(summary = "Get achievement by user ID",description = "Get achievement by user ID when visited")
     @GetMapping("/users/{user-id}")
     public ResponseEntity<?> getAchievementByUserId(@PathVariable("user-id") UUID userId) {
-        ApiResponse<AchievementResponse> apiResponse = ApiResponse.<AchievementResponse>builder()
+        ApiResponse<Map<String,Object>> apiResponse = ApiResponse.< Map<String,Object> >builder()
                 .success(true)
                 .message("Get achievement by user ID successfully")
                 .payload(achievementService.getAchievementByUserId(userId))

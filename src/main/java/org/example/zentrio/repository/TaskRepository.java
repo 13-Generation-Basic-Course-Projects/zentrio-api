@@ -357,4 +357,24 @@ public interface TaskRepository {
             """)
     @ResultMap("taskMapper")
     Task updateDateLineTaskById(@Param("re") TaskTimeRequest taskTimeRequest, LocalDateTime now);
+
+
+    @Select("""
+            SELECT  EXISTS(
+                SELECT 1 FROM  task_assignments ts WHERE
+               ts.assigned_to= #{leaderId} AND
+               ts.assigned_by= #{assignerMemberId} AND
+               ts.task_id= #{taskId}
+            )
+            """)
+    Boolean getTaskLeader(UUID assignerMemberId, UUID leaderId, UUID taskId);
+
+
+    @Select("""
+            DELETE FROM task_assignments
+                   WHERE assigned_to= #{leaderId} AND
+                         assigned_by=#{assignerMemberId} AND 
+                         task_id = #{taskId}
+            """)
+    void resignLeaderToTask(UUID assignerMemberId, UUID leaderId, UUID taskId);
 }

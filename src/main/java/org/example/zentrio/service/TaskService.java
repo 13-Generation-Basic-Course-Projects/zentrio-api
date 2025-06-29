@@ -50,6 +50,8 @@ public interface TaskService {
 
     void acceptLeaderToTask(UUID taskId, UUID pmId, UUID teamLeadId);
 
+    void resignLeaderToTask(UUID taskId, UUID assigneeId);
+
 
 //    void assignLeaderRoleToTask(UUID taskId, UUID assignedId);
 }
