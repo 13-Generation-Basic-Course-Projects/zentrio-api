@@ -298,26 +298,22 @@ public class TaskServiceImpl implements TaskService {
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
 
         // Step 4: Validate user has at least Manager or Team Leader role
-        validateRoleManageTask(boardId, userId);
+//        validateRoleManageTask(boardId, userId);
 
         // Step 5: Get all roles of the user in the board
         List<String> roles = roleRepository.getRolesNameByBoardIdAndUserId(boardId, userId);
-
         // Step 6: Role-based permission logic
         if (roles.contains(RoleName.ROLE_MANAGER.toString())) {
-            // Manager can delete any task — proceed
-        } else if (roles.contains(RoleName.ROLE_LEADER.toString())) {
-            // Team Leader can only delete tasks they created
-            UUID leaderMemberId = boardRepository.getTeamLeaderMemberIdByUserIdAndBoardId(userId, boardId);
-            if (!leaderMemberId.equals(task.getCreatedBy())) {
-                throw new ForbiddenException("Team Leader can only delete tasks they created");
-            }
-        } else {
-            throw new ForbiddenException("You do not have permission to delete this task");
+            taskRepository.deleteTaskByIdWithBoardIdAndGanttBarId(taskId, boardId, ganttBarId);
+        }
+        String role = memberRepository.getRoleInTask(task.getBoardId(), userId, task.getTaskId());
+        System.out.println("role: " + role);
+        if(role.contains(RoleName.ROLE_LEADER.toString())) {
+            taskRepository.deleteTaskByIdWithBoardIdAndGanttBarId(taskId, boardId, ganttBarId);
         }
 
         // Step 7: Perform deletion
-        return taskRepository.deleteTaskByIdWithBoardIdAndGanttBarId(taskId, boardId, ganttBarId);
+        return task;
     }
 
 
