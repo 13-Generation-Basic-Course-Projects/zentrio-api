@@ -50,10 +50,11 @@ public interface BoardRepository {
 
     @Select("""
                 SELECT * FROM boards WHERE workspace_id = #{workspaceId}
-          
+            
             """)
     @ResultMap("boardMapper")
     List<Board> getAllDataBoardsByWorkspaceId(UUID workspaceId);
+
     @Select("""
                 UPDATE boards SET title = #{request.title},
                                   description = #{request.description},
@@ -202,9 +203,12 @@ public interface BoardRepository {
     Board getBoardByIdWithCurrentUserId(UUID boardId, UUID userId);
 
     @Select("""
-                SELECT boards.* FROM boards
+               SELECT boards.*
+                FROM boards
                 INNER JOIN members m ON boards.board_id = m.board_id
+                INNER JOIN roles r ON r.role_id = m.role_id
                 WHERE m.user_id = #{userId}
+                AND r.role_name = 'ROLE_MANAGER';
             """)
     @ResultMap("boardMapper")
     HashSet<Board> getAllBoardsForCurrentUser(UUID userId);
@@ -292,10 +296,9 @@ public interface BoardRepository {
     void leaveBoard(UUID boardId, UUID userId);
 
 
-
     @Select("""
-        SELECT * FROM boards WHERE workspace_id = #{workspaceId}
-    """)
+                SELECT * FROM boards WHERE workspace_id = #{workspaceId}
+            """)
     @ResultMap("boardMapper")
     List<Board> getAllBoardByWorkspaceId(UUID workspaceId);
 }

@@ -2,10 +2,10 @@ package org.example.zentrio.service;
 
 
 import org.example.zentrio.dto.request.AchievementRequest;
+import org.example.zentrio.dto.response.AchievementFullResponse;
 import org.example.zentrio.dto.response.AchievementResponse;
 import org.example.zentrio.model.Achievement;
 
-import java.util.Map;
 import java.util.UUID;
 
 public interface AchievementService {
@@ -17,7 +17,7 @@ public interface AchievementService {
 
     void deleteAchievement(UUID achievementId);
 
-    Map<String,Object>  getAchievementByUserId(UUID userId);
+    AchievementResponse getAchievementByUserId(UUID userId);
 
-    Map<String,Object> getMyAchievement();
+    AchievementFullResponse getMyAchievement();
 }

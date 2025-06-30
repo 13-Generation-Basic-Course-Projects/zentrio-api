@@ -117,9 +117,9 @@ public interface AchievementRepository {
     List<BoardSummary> getJoinBoard(UUID userId);
 
     @Select("""
-        SELECT * FROM achievements WHERE user_id = #{userId}
-        LIMIT 1
-    """)
+                SELECT * FROM achievements WHERE user_id = #{userId}
+                LIMIT 1
+            """)
     @Results(id = "myAchievementMapper", value = {
             @Result(property = "achievementId", column = "achievement_id"),
             @Result(property = "userId", column = "user_id"),
@@ -128,4 +128,5 @@ public interface AchievementRepository {
             @Result(property = "updatedAt", column = "updated_at")
     })
     Achievement getMyAchievement(UUID userId);
+
 }

@@ -3,9 +3,7 @@ package org.example.zentrio.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.apache.catalina.User;
 import org.example.zentrio.dto.request.AchievementRequest;
-import org.example.zentrio.dto.response.AchievementResponse;
-import org.example.zentrio.dto.response.AppUserResponse;
-import org.example.zentrio.dto.response.BoardSummary;
+import org.example.zentrio.dto.response.*;
 import org.example.zentrio.enums.Stage;
 import org.example.zentrio.exception.NotFoundException;
 import org.example.zentrio.model.*;
@@ -37,7 +35,7 @@ public class AchievementServiceImpl implements AchievementService {
     @Override
     public Achievement updateAchievement(AchievementRequest achievementRequest) {
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
-        return achievementRepository.updateAchievement(achievementRequest,userId,LocalDateTime.now());
+        return achievementRepository.updateAchievement(achievementRequest, userId, LocalDateTime.now());
     }
 
     @Override
@@ -62,71 +60,69 @@ public class AchievementServiceImpl implements AchievementService {
         if (achievement == null) {
             throw new NotFoundException("Achievement not found");
         }
-        achievementRepository.deletedAchievement(achievementId,userId);
+        achievementRepository.deletedAchievement(achievementId, userId);
     }
 
     @Override
-    public  Map<String,Object>  getAchievementByUserId(UUID userId) {
-        AppUser user=appUserRepository.getUserById(userId);
-        if (user == null) {
-            throw new NotFoundException("User not found");
-        }
-        List<Workspace> workspaces = workspaceRepository.getAllWorkspacesByUserId(userId);
-        Map<String, Object> achievementData = new HashMap<>();
-
-        for (Workspace workspace : workspaces) {
-            System.out.println(workspace);
-            List<Board> boards = boardRepository.getAllBoardByWorkspaceId(workspace.getWorkspaceId());
-            for (Board board : boards) {
-                List<Task> tasks = taskRepository.getAllTasksByBoardId(board.getBoardId());
-                System.out.println(tasks);
-                long completed = tasks.stream()
-                        .filter(task -> task.getStage().equals(Stage.COMPLETED.toString()))
-                        .count();
-                long total = tasks.size();
-                double percent = total == 0 ? 0 : (completed * 100.0 / total);
-
-                Map<String, Object> boardData = new HashMap<>();
-                boardData.put("boardName", board.getTitle());
-                boardData.put("completedTasks", completed);
-                boardData.put("totalTasks", total);
-                boardData.put("completionRate", String.format("%.0f%%", percent));
-
-                achievementData.put(board.getTitle(), boardData);
-            }
-        }
-        return achievementData;
+    public AchievementResponse getAchievementByUserId(UUID userId) {
+        List<BoardSummary> ownedBoards = achievementRepository.getOwnBoards(userId);
+        List<BoardSummary> joinedBoards = achievementRepository.getJoinBoard(userId);
+        AppUserResponse user = appUserRepository.getUserByUserId(userId);
+        return new AchievementResponse(user, ownedBoards, joinedBoards);
     }
 
     @Override
-    public Map<String, Object> getMyAchievement() {
+    public AchievementFullResponse getMyAchievement() {
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
-        List<Workspace> workspaces = workspaceRepository.getAllWorkspacesByUserId(userId);
-        Map<String, Object> achievementData = new HashMap<>();
 
-        for (Workspace workspace : workspaces) {
-            System.out.println(workspace);
-            List<Board> boards = boardRepository.getAllBoardByWorkspaceId(workspace.getWorkspaceId());
-            for (Board board : boards) {
-                List<Task> tasks = taskRepository.getAllTasksByBoardId(board.getBoardId());
-                System.out.println(tasks);
-                long completed = tasks.stream()
-                        .filter(task -> task.getStage().equals(Stage.COMPLETED.toString()))
-                        .count();
-                long total = tasks.size();
-                double percent = total == 0 ? 0 : (completed * 100.0 / total);
+        Set<Board> boards = boardRepository.getAllBoardsForCurrentUser(userId);
+        List<BoardAchievementDTO> boardSummaries = new ArrayList<>();
 
-                Map<String, Object> boardData = new HashMap<>();
-                boardData.put("boardName", board.getTitle());
-                boardData.put("completedTasks", completed);
-                boardData.put("totalTasks", total);
-                boardData.put("completionRate", String.format("%.0f%%", percent));
+        int totalTasks = 0;
+        int completedTasks = 0;
 
-                achievementData.put(board.getTitle(), boardData);
-            }
+        for (Board board : boards) {
+            UUID boardId = board.getBoardId();
+            List<Task> tasks = new ArrayList<>(taskRepository.getTasksByBoardId(boardId));
+
+            int total = tasks.size();
+            int completed = (int) tasks.stream()
+                    .filter(task -> Stage.COMPLETED.toString().equals(task.getStage()))
+                    .count();
+
+            totalTasks += total;
+            completedTasks += completed;
+
+            String percent = total == 0 ? "0%" : String.format("%.0f%%", completed * 100.0 / total);
+
+            boardSummaries.add(new BoardAchievementDTO(
+                    boardId,
+                    board.getTitle(),
+                    total,
+                    completed,
+                    percent
+            ));
         }
-        return achievementData;
+
+        Achievement achievement = achievementRepository.getMyAchievement(userId);
+        if (achievement == null) {
+            throw new NotFoundException("Achievement not found");
+        }
+
+        String overallRate = totalTasks == 0 ? "0%" : String.format("%.0f%%", completedTasks * 100.0 / totalTasks);
+
+        return new AchievementFullResponse(
+                userId,
+                achievement.getAchievementId(),
+                boardSummaries,
+                totalTasks,
+                completedTasks,
+                overallRate
+        );
     }
+
+
+
 
 
 }
