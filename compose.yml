@@ -32,13 +32,13 @@ services:
     volumes:
       - zentrio-storage:/var/lib/minio/data
 
-  zentrio-api-develop:
+  zentrio-api-test:
     build:
       context: .
       dockerfile: Dockerfile
     restart: always
     ports:
-      - "9100:8080"
+      - "9200:8080"
     environment:
       SPRING_DATA_REDIS_HOST: zentrio-redis-develop
       SPRING_DATA_REDIS_PORT: 6379
