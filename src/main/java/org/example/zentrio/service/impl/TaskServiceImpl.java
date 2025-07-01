@@ -147,7 +147,6 @@ public class TaskServiceImpl implements TaskService {
         List<String> roles = roleRepository.getRolesNameByBoardIdAndUserId(board.getBoardId(), userId); // returns "MANAGER" or "TEAM_LEADER"
 
 
-
         UUID creatorMemberId;
 
         if (roles.contains(RoleName.ROLE_MANAGER.toString())) {
@@ -203,7 +202,7 @@ public class TaskServiceImpl implements TaskService {
                 taskRepository.updateStatusOfTaskById(task.getTaskId(), OVERDUE.toString());
             }
         }
-         return  taskRepository.getAllTasksByBoardIdAndGanttBarId(boardId, ganttBarId);
+        return taskRepository.getAllTasksByBoardIdAndGanttBarId(boardId, ganttBarId);
 
     }
 
@@ -224,10 +223,10 @@ public class TaskServiceImpl implements TaskService {
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         Task taskAfterUpdate = new Task();
         System.out.println("user id" + userId);
-        String manager= memberRepository.getRolePm(taskRequest.getBoardId(),userId);
+        String manager = memberRepository.getRolePm(taskRequest.getBoardId(), userId);
         System.out.println("manager" + manager);
         if (manager != null) {
-            return  taskRepository.updateTaskByIdWithBoardIdAndGanttBarId(taskRequest, taskId, taskRequest.getBoardId(), taskRequest.getGanttBarId(), LocalDateTime.now());
+            return taskRepository.updateTaskByIdWithBoardIdAndGanttBarId(taskRequest, taskId, taskRequest.getBoardId(), taskRequest.getGanttBarId(), LocalDateTime.now());
         }
 
 
@@ -251,23 +250,23 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public Task updateDateLineTaskById(TaskTimeRequest taskTimeRequest) {
         Task task = getTaskById(taskTimeRequest.getTaskId());
-        GanttBar ganttBar= ganttBarRepository.getGanttBarByGanttBarId(task.getGanttBarId());
+        GanttBar ganttBar = ganttBarRepository.getGanttBarByGanttBarId(task.getGanttBarId());
         if (ganttBar == null) {
             throw new NotFoundException("GanttBar with ID " + task.getGanttBarId() + " not found");
         }
         if (taskTimeRequest.getFinishedAt().isAfter(ganttBar.getFinishedAt())) {
             throw new ForbiddenException("task finished at cannot be after gantt bar finished at");
         }
-        if (taskTimeRequest.getFinishedAt().isBefore(ganttBar.getStartedAt())){
+        if (taskTimeRequest.getFinishedAt().isBefore(ganttBar.getStartedAt())) {
             throw new ForbiddenException("task finished at cannot be before gantt bar finished at");
         }
 
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         Task taskAfterUpdate = new Task();
         System.out.println("user id" + userId);
-        String manager=  memberRepository.getRolePm(task.getBoardId(),userId);
+        String manager = memberRepository.getRolePm(task.getBoardId(), userId);
         if (manager != null) {
-            return  taskRepository.updateDateLineTaskById(taskTimeRequest, LocalDateTime.now());
+            return taskRepository.updateDateLineTaskById(taskTimeRequest, LocalDateTime.now());
         }
 
         String role = memberRepository.getRoleInTask(task.getBoardId(), userId, task.getTaskId());
@@ -282,8 +281,6 @@ public class TaskServiceImpl implements TaskService {
 
         return taskAfterUpdate;
     }
-
-
 
 
     @Override
@@ -304,16 +301,19 @@ public class TaskServiceImpl implements TaskService {
         List<String> roles = roleRepository.getRolesNameByBoardIdAndUserId(boardId, userId);
         // Step 6: Role-based permission logic
         if (roles.contains(RoleName.ROLE_MANAGER.toString())) {
-            taskRepository.deleteTaskByIdWithBoardIdAndGanttBarId(taskId, boardId, ganttBarId);
-        }
-        String role = memberRepository.getRoleInTask(task.getBoardId(), userId, task.getTaskId());
-        System.out.println("role: " + role);
-        if(role.contains(RoleName.ROLE_LEADER.toString())) {
-            taskRepository.deleteTaskByIdWithBoardIdAndGanttBarId(taskId, boardId, ganttBarId);
+            // Manager can delete any task — proceedAdd commentMore actions
+        } else if (roles.contains(RoleName.ROLE_LEADER.toString())) {
+            // Team Leader can only delete tasks they created
+            UUID leaderMemberId = boardRepository.getTeamLeaderMemberIdByUserIdAndBoardId(userId, boardId);
+            if (!leaderMemberId.equals(task.getCreatedBy())) {
+                throw new ForbiddenException("Team Leader can only delete tasks they created");
+            }
+        } else {
+            throw new ForbiddenException("You do not have permission to delete this task");
         }
 
         // Step 7: Perform deletion
-        return task;
+        return taskRepository.deleteTaskByIdWithBoardIdAndGanttBarId(taskId, boardId, ganttBarId);
     }
 
 
@@ -334,9 +334,9 @@ public class TaskServiceImpl implements TaskService {
 
         UUID currentUserId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         UUID assignerMemberId = boardRepository.getManagerMemberIdByUserIdAndBoardId(currentUserId, task.getBoardId());
-        Boolean userExistInBoard= boardRepository.getExistUserInBoard(assigneeId,task.getBoardId());
+        Boolean userExistInBoard = boardRepository.getExistUserInBoard(assigneeId, task.getBoardId());
         UUID leaderId = null;
-        if (userExistInBoard){
+        if (userExistInBoard) {
             String roleManager = roleRepository.getRoleNameByBoardIdAndUserId(task.getBoardId(), assigneeId);
             if (RoleName.ROLE_MANAGER.toString().equals(roleManager)) {
                 throw new BadRequestException("Cannot assign Project Manager!");
@@ -351,7 +351,7 @@ public class TaskServiceImpl implements TaskService {
                 }
             }
 
-         }else {
+        } else {
             throw new ForbiddenException("This user is not member in this board");
         }
         leaderId = taskRepository.getLeaderIdByUserIdAndBoardId(assigneeId, task.getBoardId());
@@ -367,19 +367,20 @@ public class TaskServiceImpl implements TaskService {
                 NotificationTypes.TASK_ASSIGNED
         );
     }
+
     @Override
     public void acceptLeaderToTask(UUID taskId, UUID pmId, UUID teamLeadId) {
         Task task = getTaskById(taskId);
         if (taskRepository.isAlreadyAssigned(taskId)) {
             throw new ConflictException("Task's with ID " + taskId + " is already assigned Leader");
         }
-        UUID assigneeId=teamLeadId;
+        UUID assigneeId = teamLeadId;
 
         UUID currentUserId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
-        UUID assignerMemberId =pmId;
-        Boolean userExistInBoard= boardRepository.getExistUserInBoard(assigneeId,task.getBoardId());
+        UUID assignerMemberId = pmId;
+        Boolean userExistInBoard = boardRepository.getExistUserInBoard(assigneeId, task.getBoardId());
         UUID leaderId = null;
-        if (userExistInBoard){
+        if (userExistInBoard) {
             String roleManager = roleRepository.getRoleNameByBoardIdAndUserId(task.getBoardId(), assigneeId);
             if (RoleName.ROLE_MANAGER.toString().equals(roleManager)) {
                 throw new BadRequestException("Cannot assign Project Manager!");
@@ -394,7 +395,7 @@ public class TaskServiceImpl implements TaskService {
                 }
             }
 
-        }else {
+        } else {
             throw new ForbiddenException("This user is not member in this board");
         }
         leaderId = taskRepository.getLeaderIdByUserIdAndBoardId(assigneeId, task.getBoardId());
@@ -413,16 +414,16 @@ public class TaskServiceImpl implements TaskService {
         if (assignerMemberId == null) {
             throw new ForbiddenException("This user is pm  in this board");
         }
-        Boolean userExistInBoard= boardRepository.getExistUserInBoard(assigneeId,task.getBoardId());
+        Boolean userExistInBoard = boardRepository.getExistUserInBoard(assigneeId, task.getBoardId());
         if (userExistInBoard) {
-            UUID leaderId = taskRepository.getLeaderIdByUserIdAndBoardId(assigneeId,task.getBoardId());
-            Boolean taskLeader= taskRepository.getTaskLeader(assignerMemberId, leaderId, taskId);
+            UUID leaderId = taskRepository.getLeaderIdByUserIdAndBoardId(assigneeId, task.getBoardId());
+            Boolean taskLeader = taskRepository.getTaskLeader(assignerMemberId, leaderId, taskId);
             if (taskLeader) {
                 taskRepository.resignLeaderToTask(assignerMemberId, leaderId, taskId);
-            }else {
+            } else {
                 throw new ForbiddenException("This user is not leader  in this task");
             }
-        }else  {
+        } else {
             throw new ForbiddenException("This user is not member in this board");
         }
     }
@@ -450,7 +451,7 @@ public class TaskServiceImpl implements TaskService {
         if (!isManager) {
             if (isLeader) {
                 boolean isTaskCreator = currentUserId.equals(task.getCreatedBy());
-                boolean isAssignedUser = taskRepository.isUserAssignedToTask(leaderIdInMember,taskId);
+                boolean isAssignedUser = taskRepository.isUserAssignedToTask(leaderIdInMember, taskId);
                 System.out.println("isAssignedUser: " + isAssignedUser);
                 if (!isTaskCreator && !isAssignedUser) {
 
@@ -471,7 +472,7 @@ public class TaskServiceImpl implements TaskService {
 
             case "UNDER_REVIEW":
                 if (!isManager) {
-                    UUID taskLeaderId = taskRepository.getLeaderIdByUserIdAndBoardId(currentUserId,boardId);
+                    UUID taskLeaderId = taskRepository.getLeaderIdByUserIdAndBoardId(currentUserId, boardId);
                     if (!taskLeaderId.equals(leaderIdInMember)) {
                         throw new ForbiddenException("Only the task leader can move the task to UNDER_REVIEW.");
                     }
@@ -565,7 +566,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public HashSet<TaskResponse> getTasksByBoardId(UUID boardId) {
         boardService.getBoardByBoardId(boardId);
-        return new HashSet<>( taskRepository.getAllDataInTaskByBoardId(boardId));
+        return new HashSet<>(taskRepository.getAllDataInTaskByBoardId(boardId));
 
     }
 

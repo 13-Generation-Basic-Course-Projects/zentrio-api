@@ -69,6 +69,7 @@ public class AttachmentServiceImpl implements AttachmentService {
     // note to ask
     @Override
     public Attachment createAttachment(AttachmentRequest attachmentRequest, UUID checklistId) {
+        System.out.println("DATa from fronted" + attachmentRequest);
         // Get current authenticated user's ID
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
 
@@ -97,18 +98,18 @@ public class AttachmentServiceImpl implements AttachmentService {
         }
 
         // Verify checklist creator matches current user's memberId
-        if (!checklist.getCreatedBy().equals(userMemberId)) {
-            throw new ForbiddenException("You are not authorized to add attachments to this checklist.");
-        }
-
-//        // Optional: if you want to limit only one attachment per checklist
-//        int existingAttachments = attachmentRepository.countByChecklistId(checklistId);
-//        if (existingAttachments > 0) {
-//            throw new BadRequestException("Checklist already has attachments.");
+//        if (!checklist.getCreatedBy().equals(userMemberId)) {
+//            throw new ForbiddenException("You are not authorized to add attachments to this checklist.");
 //        }
 
+//        // Optional: if you want to limit only one attachment per checklist
+        int existingAttachments = attachmentRepository.countByChecklistId(checklistId);
+        if (existingAttachments > 0) {
+            throw new BadRequestException("Checklist already has attachments.");
+        }
+
         // Validate the attachment details
-        validateAttachmentDetails(attachmentRequest);
+//        validateAttachmentDetails(attachmentRequest);
 
         // Create and return the new attachment with the current user's memberId as creator
         return attachmentRepository.createAttachment(attachmentRequest, checklistId, userMemberId);
