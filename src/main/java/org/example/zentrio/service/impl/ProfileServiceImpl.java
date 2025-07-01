@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -40,6 +41,17 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Value("${minio.bucket.name}")
     private String bucketName;
+
+    @Value("${app.base-url}")
+    private String baseUrl;
+
+
+    public String generateFileUrl(String fileName) {
+        return UriComponentsBuilder
+                .fromHttpUrl(baseUrl)
+                .path("/api/v1/files/preview-file/" + fileName)
+                .toUriString();
+    }
 
     @Override
     public AppUserResponse getProfile() {
@@ -119,10 +131,7 @@ public class ProfileServiceImpl implements ProfileService {
         );
 
         // Generate access URL
-        String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/api/v1/profiles/profile-image/")
-                .path(fileName)
-                .toUriString();
+        String fileUrl = generateFileUrl(fileName);
 
         return FileMetadata.builder()
                 .fileName(fileName)

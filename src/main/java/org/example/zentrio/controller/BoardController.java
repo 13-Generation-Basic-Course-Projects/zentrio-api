@@ -16,11 +16,13 @@ import org.example.zentrio.enums.RoleRequest;
 import org.example.zentrio.model.Board;
 import org.example.zentrio.model.FileMetadata;
 import org.example.zentrio.service.BoardService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,6 +40,7 @@ import java.util.UUID;
 public class BoardController {
 
     private final BoardService boardService;
+
 
     @Operation(summary = "Created new board by workspace ID", description = "create a new board by specific workspace ID")
     @PostMapping

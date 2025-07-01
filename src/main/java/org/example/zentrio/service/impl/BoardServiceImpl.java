@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.InputStream;
 import java.net.URLEncoder;
@@ -57,6 +58,18 @@ public class BoardServiceImpl implements BoardService {
 
     @Value("${minio.bucket.name}")
     private String bucketName;
+
+    @Value("${app.base-url}")
+    private String baseUrl;
+
+
+    public String generateFileUrl(String fileName) {
+        return UriComponentsBuilder
+                .fromHttpUrl(baseUrl)
+                .path("/api/v1/files/preview-file/" + fileName)
+                .toUriString();
+    }
+
 
     @Override
     public Board createBoard(BoardRequest boardRequest) {
@@ -255,10 +268,7 @@ public class BoardServiceImpl implements BoardService {
                         .build()
         );
 
-
-        String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/api/v1/files/preview-file/" + fileName)
-                .toUriString();
+        String fileUrl = generateFileUrl(fileName);
 
         boardRepository.updateCover(boardId, fileUrl);
         return FileMetadata.builder()
@@ -348,7 +358,7 @@ public class BoardServiceImpl implements BoardService {
             // If the user is not found, redirect to the login/sign-in page.
             // Note: This URL is just an example; the actual URL should be
             // provided dynamically by the frontend.
-            return "http://localhost:3000/login";
+            return "https://kshrd.zentrio.pro/login";
         }
         UUID userId = appUser.getUserId();
         UUID roleId = roleRepository.getRoleIdByRoleName(roleRequest.toString());
@@ -356,13 +366,13 @@ public class BoardServiceImpl implements BoardService {
             // If the user is not found, redirect to the login/sign-in page.
             // Note: This URL is just an example; the actual URL should be
             // provided dynamically by the frontend.
-            return "http://localhost:3000/login";
+            return "https://kshrd.zentrio.pro/login";
         }
         UUID existingMemberId = boardRepository.getMemberIdByUserIdAndBoardId(userId, boardId);
         if (existingMemberId != null) {
             log.info("User {} is already a member of board {}, redirecting to board page", userId, boardId);
             return String.format(
-                    "http://localhost:3000/dashboard/otherworkspace/%s/board",
+                    "https://kshrd.zentrio.pro/dashboard/otherworkspace/%s/board",
                     boardId
             );
         }
@@ -376,7 +386,7 @@ public class BoardServiceImpl implements BoardService {
         // Note: The URL shown here is just an example; the real URL
         // should be dynamically obtained from the frontend.
         return String.format(
-                "http://localhost:3000/dashboard/otherworkspace/%s/board",
+                "https://kshrd.zentrio.pro/dashboard/otherworkspace/%s/board",
                 boardId
         );
     }

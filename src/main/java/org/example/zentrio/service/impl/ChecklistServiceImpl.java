@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
@@ -45,6 +46,17 @@ ChecklistServiceImpl implements ChecklistService {
 
     @Value("${minio.bucket.name}")
     private String bucketName;
+
+    @Value("${app.base-url}")
+    private String baseUrl;
+
+
+    public String generateFileUrl(String fileName) {
+        return UriComponentsBuilder
+                .fromHttpUrl(baseUrl)
+                .path("/api/v1/files/preview-file/" + fileName)
+                .toUriString();
+    }
 
 
     private void validateChecklistWithTaskTime(ChecklistRequest checklistRequest, Task task) {
@@ -305,9 +317,7 @@ ChecklistServiceImpl implements ChecklistService {
                         .build()
         );
 
-        String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/api/v1/files/preview-file/" + fileName)
-                .toUriString();
+        String fileUrl = generateFileUrl(fileName);
         checklistRepository.updateCover(checklistId, fileUrl);
 
         return FileMetadata.builder()

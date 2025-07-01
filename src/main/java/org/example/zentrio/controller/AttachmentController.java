@@ -29,7 +29,7 @@ public class AttachmentController {
     @GetMapping("/checklists/{checklist-id}")
     public ResponseEntity<ApiResponse<Attachment>> getAttachmentByChecklistId(
             @PathVariable("checklist-id") UUID checklistId
-          ) {
+    ) {
         ApiResponse<Attachment> apiResponse = ApiResponse.<Attachment>builder()
                 .success(true)
                 .message("Get attachment by checklist id successfully")
@@ -46,7 +46,7 @@ public class AttachmentController {
         ApiResponse<Attachment> apiResponse = ApiResponse.<Attachment>builder()
                 .success(true)
                 .message("Created attachment successfully")
-                .payload(attachmentService.createAttachment(attachmentRequest,checklistId))
+                .payload(attachmentService.createAttachment(attachmentRequest, checklistId))
                 .status(HttpStatus.CREATED)
                 .timestamp(LocalDateTime.now())
                 .build();
@@ -58,12 +58,12 @@ public class AttachmentController {
     @PutMapping("/{attachment-id}/checklists/{checklist-id}")
     public ResponseEntity<ApiResponse<Attachment>> updateAttachment(
             @Valid @RequestBody AttachmentRequest attachmentRequest,
-            @PathVariable("checklist-id") UUID checklistId,
-            @PathVariable("attachment-id") UUID attachmentId) {
+            @PathVariable("attachment-id") UUID attachmentId,
+            @PathVariable("checklist-id") UUID checklistId) {
         ApiResponse<Attachment> apiResponse = ApiResponse.<Attachment>builder()
                 .success(true)
                 .message("Updated attachment successfully")
-                .payload(attachmentService.updateAttachment(attachmentRequest,checklistId,attachmentId))
+                .payload(attachmentService.updateAttachment(attachmentRequest, checklistId, attachmentId))
                 .status(HttpStatus.OK)
                 .timestamp(LocalDateTime.now())
                 .build();
@@ -77,7 +77,7 @@ public class AttachmentController {
             @PathVariable("attachment-id") UUID attachmentId,
             @PathVariable("checklist-id") UUID checklistId
     ) {
-        attachmentService.deleteAttachmentById(checklistId,attachmentId);
+        attachmentService.deleteAttachmentById(checklistId, attachmentId);
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .success(true)
                 .message("Deleted attachment successfully")
@@ -87,8 +87,6 @@ public class AttachmentController {
 
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
-
-
 
 
 }

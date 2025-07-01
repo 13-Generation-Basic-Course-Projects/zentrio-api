@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
@@ -39,6 +40,17 @@ public class FileServiceImpl implements FileService {
     private final AnnouncementImageRepository announcementImageRepository;
     private final MemberRepository memberRepository;
     private final BoardService boardService;
+
+    @Value("${app.base-url}")
+    private String baseUrl;
+
+
+    public String generateFileUrl(String fileName) {
+        return UriComponentsBuilder
+                .fromHttpUrl(baseUrl)
+                .path("/api/v1/files/preview-file/" + fileName)
+                .toUriString();
+    }
 
     public UUID userId (){
         AppUser appUser= (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -94,9 +106,7 @@ public class FileServiceImpl implements FileService {
         String profileImage= extractFileNameFromUrl(appUser.getProfileImage());
         deleteFileByName(profileImage);
 
-        String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/api/v1/files/preview-file/" + fileName)
-                .toUriString();
+        String fileUrl = generateFileUrl(fileName);
 
         appUserRepository.profileImage(fileUrl, userId());
         return FileMetadata.builder()
@@ -162,10 +172,7 @@ public class FileServiceImpl implements FileService {
                     .build());
 
             // Generate accessible URL (if you expose a preview endpoint)
-            String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path("/api/v1/files/preview-file/")
-                    .path(uniqueFileName)
-                    .toUriString();
+            String fileUrl = generateFileUrl(uniqueFileName);
 
             FileMetadata metadata = FileMetadata.builder()
                     .fileName(uniqueFileName)

@@ -83,7 +83,7 @@ public class EmailServiceImpl implements EmailService {
                     .toUriString();
 
             AppUser user = appUserRepository.getUserByEmail(email);
-            String loginInvitationUrl = "http://localhost:3000/login";
+            String loginInvitationUrl = "https://kshrd.zentrio.pro/login";
 
             context.setVariable("inviteLink", acceptInvitationUrl);
 
