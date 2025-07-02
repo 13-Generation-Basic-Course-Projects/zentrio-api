@@ -42,17 +42,6 @@ public class ProfileServiceImpl implements ProfileService {
     @Value("${minio.bucket.name}")
     private String bucketName;
 
-    @Value("${app.base-url}")
-    private String baseUrl;
-
-
-    public String generateFileUrl(String fileName) {
-        return UriComponentsBuilder
-                .fromHttpUrl(baseUrl)
-                .path("/api/v1/files/preview-file/" + fileName)
-                .toUriString();
-    }
-
     @Override
     public AppUserResponse getProfile() {
 
@@ -131,7 +120,10 @@ public class ProfileServiceImpl implements ProfileService {
         );
 
         // Generate access URL
-        String fileUrl = generateFileUrl(fileName);
+        String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/v1/profiles/profile-image/")
+                .path(fileName)
+                .toUriString();
 
         return FileMetadata.builder()
                 .fileName(fileName)

@@ -41,16 +41,6 @@ public class FileServiceImpl implements FileService {
     private final MemberRepository memberRepository;
     private final BoardService boardService;
 
-    @Value("${app.base-url}")
-    private String baseUrl;
-
-
-    public String generateFileUrl(String fileName) {
-        return UriComponentsBuilder
-                .fromHttpUrl(baseUrl)
-                .path("/api/v1/files/preview-file/" + fileName)
-                .toUriString();
-    }
 
     public UUID userId (){
         AppUser appUser= (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -106,7 +96,9 @@ public class FileServiceImpl implements FileService {
         String profileImage= extractFileNameFromUrl(appUser.getProfileImage());
         deleteFileByName(profileImage);
 
-        String fileUrl = generateFileUrl(fileName);
+        String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/v1/files/preview-file/" + fileName)
+                .toUriString();
 
         appUserRepository.profileImage(fileUrl, userId());
         return FileMetadata.builder()
@@ -171,8 +163,10 @@ public class FileServiceImpl implements FileService {
                     .contentType(file.getContentType())
                     .build());
 
-            // Generate accessible URL (if you expose a preview endpoint)
-            String fileUrl = generateFileUrl(uniqueFileName);
+            String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/api/v1/files/preview-file/")
+                    .path(uniqueFileName)
+                    .toUriString();
 
             FileMetadata metadata = FileMetadata.builder()
                     .fileName(uniqueFileName)

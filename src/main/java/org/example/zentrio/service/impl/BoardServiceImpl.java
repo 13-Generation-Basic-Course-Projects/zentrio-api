@@ -59,17 +59,6 @@ public class BoardServiceImpl implements BoardService {
     @Value("${minio.bucket.name}")
     private String bucketName;
 
-    @Value("${app.base-url}")
-    private String baseUrl;
-
-
-    public String generateFileUrl(String fileName) {
-        return UriComponentsBuilder
-                .fromHttpUrl(baseUrl)
-                .path("/api/v1/files/preview-file/" + fileName)
-                .toUriString();
-    }
-
 
     @Override
     public Board createBoard(BoardRequest boardRequest) {
@@ -268,7 +257,9 @@ public class BoardServiceImpl implements BoardService {
                         .build()
         );
 
-        String fileUrl = generateFileUrl(fileName);
+        String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/v1/files/preview-file/" + fileName)
+                .toUriString();
 
         boardRepository.updateCover(boardId, fileUrl);
         return FileMetadata.builder()
