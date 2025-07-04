@@ -194,6 +194,9 @@ public class AuthServiceImpl implements AuthService {
         System.out.println("token from fronted       " + request.getIdToken());
         GoogleIdToken idToken = verifier.verify(request.getIdToken());
 
+
+        System.out.println("Request from fronted " + request);
+
         System.out.println("idToken: " + idToken);
 
         if (idToken == null) {
@@ -201,6 +204,8 @@ public class AuthServiceImpl implements AuthService {
         }
 
         GoogleIdToken.Payload payload = idToken.getPayload();
+
+        log.info("payload: {}", payload);
 
         String email = payload.getEmail();
 
