@@ -13,5 +13,5 @@ public interface FileService {
     InputStream getFileByFileName(String fileName);
     String extractFileNameFromUrl(String url);
     void deleteFileByName(String fileName);
-    List<FileMetadata> uploadFiles(UUID boardId,List<MultipartFile> files);
+    List<FileMetadata> uploadFiles(UUID boardId,List<MultipartFile> files, UUID announcementId);
 }

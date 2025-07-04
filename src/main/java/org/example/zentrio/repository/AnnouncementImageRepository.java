@@ -13,10 +13,10 @@ public interface AnnouncementImageRepository {
 
 
     @Select("""
-        INSERT INTO announcement_images(image_url,uploaded_at,created_by)
-        VALUES (#{imageUrl}, #{creationDate}, #{authorId})
+        INSERT INTO announcement_images(image_url,uploaded_at,created_by,announcement_id)
+        VALUES (#{imageUrl}, #{creationDate}, #{authorId},#{announcementId})
         """)
-    void createAnnouncementImage(String imageUrl, LocalDateTime creationDate, UUID authorId);
+    void createAnnouncementImage(String imageUrl, LocalDateTime creationDate, UUID authorId, UUID announcementId);
 
 
     @Select("""

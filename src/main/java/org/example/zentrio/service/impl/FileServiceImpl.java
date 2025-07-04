@@ -125,7 +125,7 @@ public class FileServiceImpl implements FileService {
 
     @SneakyThrows
     @Override
-    public List<FileMetadata> uploadFiles(UUID boardId, List<MultipartFile> files) {
+    public List<FileMetadata> uploadFiles(UUID boardId, List<MultipartFile> files, UUID announcementId) {
         List<FileMetadata> fileMetadataList = new ArrayList<>();
         boardService.getBoardByBoardId(boardId);
         UUID pmId = getPmId(boardId);
@@ -175,7 +175,7 @@ public class FileServiceImpl implements FileService {
                     .build();
 
             fileMetadataList.add(metadata);
-            announcementImageRepository.createAnnouncementImage(fileUrl, LocalDateTime.now(),pmId);
+            announcementImageRepository.createAnnouncementImage(fileUrl, LocalDateTime.now(),pmId, announcementId);
         }
 
         return fileMetadataList;

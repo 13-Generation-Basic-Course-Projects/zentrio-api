@@ -13,6 +13,7 @@ import org.example.zentrio.model.Comment;
 import org.example.zentrio.service.CommentAnnouncementService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -27,16 +28,24 @@ import java.util.UUID;
 public class CommentAnnouncementController {
 
     private final CommentAnnouncementService commentAnnouncementService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @PostMapping("/announcement/")
     @Operation(summary = "Create comment by announcement id")
     public ResponseEntity<ApiResponse<CommentAnnouncementResponse>> createAnnouncementComment
             (@Valid @RequestBody CommentAnnouncementRequest  commentAnnouncementRequest)
     {
+
+        CommentAnnouncementResponse commentAnnouncementResponse = commentAnnouncementService.createAnnouncementComment(commentAnnouncementRequest);
+        // 🔥 Send WebSocket message to /topic/announcement/{announcementId}/comments
+        messagingTemplate.convertAndSend(
+                "/topic/announcement/" + commentAnnouncementResponse.getAnnouncementId() + "/comments",
+                commentAnnouncementResponse
+        );
         ApiResponse<CommentAnnouncementResponse>  response= ApiResponse.<CommentAnnouncementResponse>builder()
                 .success(true)
                 .message("Create comment  Successfully")
-                .payload(commentAnnouncementService.createAnnouncementComment(commentAnnouncementRequest))
+                .payload(commentAnnouncementResponse)
                 .status(HttpStatus.CREATED)
                 .timestamp(LocalDateTime.now())
                 .build();
