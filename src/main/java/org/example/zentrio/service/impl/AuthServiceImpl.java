@@ -214,6 +214,8 @@ public class AuthServiceImpl implements AuthService {
         System.out.println("provider = " + provider);
 
         AppUser user = appUserRepository.getUserByEmail(email);
+        System.out.println("payload"+payload);
+        System.out.println("user = " + name);
         if(user ==  null) {
             authRepository.insertUser(email, name, googleId, picture, emailVerified,provider);
         }

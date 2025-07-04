@@ -9,13 +9,18 @@ import org.example.zentrio.dto.request.CommentAnnouncementRequest;
 import org.example.zentrio.dto.request.CommentRequest;
 import org.example.zentrio.dto.response.ApiResponse;
 import org.example.zentrio.dto.response.CommentAnnouncementResponse;
+import org.example.zentrio.model.Announcement;
 import org.example.zentrio.model.Comment;
+import org.example.zentrio.service.AnnouncementService;
 import org.example.zentrio.service.CommentAnnouncementService;
+import org.example.zentrio.service.CommentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -27,85 +32,89 @@ import java.util.UUID;
 public class CommentAnnouncementController {
 
     private final CommentAnnouncementService commentAnnouncementService;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final AnnouncementService announcementService;
 
     @PostMapping("/announcement/")
     @Operation(summary = "Create comment by announcement id")
-    public ResponseEntity<ApiResponse<CommentAnnouncementResponse>> createAnnouncementComment
-            (@Valid @RequestBody CommentAnnouncementRequest  commentAnnouncementRequest)
-    {
-        ApiResponse<CommentAnnouncementResponse>  response= ApiResponse.<CommentAnnouncementResponse>builder()
+    public ResponseEntity<ApiResponse<CommentAnnouncementResponse>> createAnnouncementComment(
+            @Valid @RequestBody CommentAnnouncementRequest request) {
+
+        CommentAnnouncementResponse createdComment = commentAnnouncementService.createAnnouncementComment(request);
+
+        // Get the announcement to get the boardId (same pattern as announcements)
+        Announcement announcement = announcementService.getAnnouncementById(createdComment.getAnnouncementId());
+
+        // DEBUG: Print what you're sending
+        Map<String, Object> message = Map.of("type", "CREATED", "comment", createdComment);
+        System.out.println("Sending WebSocket message: " + message);
+
+        messagingTemplate.convertAndSend(
+                "/topic/board/" + announcement.getBoardId() + "/comments",
+                message
+        );
+
+        ApiResponse<CommentAnnouncementResponse> response = ApiResponse.<CommentAnnouncementResponse>builder()
                 .success(true)
-                .message("Create comment  Successfully")
-                .payload(commentAnnouncementService.createAnnouncementComment(commentAnnouncementRequest))
+                .message("Created comment successfully")
+                .payload(createdComment)
                 .status(HttpStatus.CREATED)
                 .timestamp(LocalDateTime.now())
                 .build();
-        return ResponseEntity.status(201).body(response);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-
-
-    @GetMapping("/{comment-id}")
-    @Operation(summary = "Get comment by comment id")
-    public ResponseEntity<ApiResponse<CommentAnnouncementResponse>> getCommentByCommentId
-            (@PathVariable("comment-id") UUID commentId)
-    {
-        ApiResponse<CommentAnnouncementResponse>  response= ApiResponse.<CommentAnnouncementResponse>builder()
-                .success(true)
-                .message("Get comment by comment id successfully")
-                .payload(commentAnnouncementService.getCommentByCommentId(commentId))
-                .status(HttpStatus.OK)
-                .timestamp(LocalDateTime.now())
-                .build();
-        return ResponseEntity.ok(response);
-    }
-
-
-    @GetMapping("/announcement/{announcement-id}")
-    @Operation(summary = "Get all comments by announcement id")
-    public ResponseEntity<ApiResponse<Set<CommentAnnouncementResponse>>> getAllAnnouncementComments(@PathVariable("announcement-id") UUID announcementId)
-    {
-        ApiResponse<Set<CommentAnnouncementResponse>>  response= ApiResponse.<Set<CommentAnnouncementResponse>>builder()
-                .success(true)
-                .message("Get all comments by announcement id successfully")
-                .payload(commentAnnouncementService.getAllAnnouncementComments(announcementId))
-                .status(HttpStatus.OK)
-                .timestamp(LocalDateTime.now())
-                .build();
-        return ResponseEntity.ok(response);
-    }
-
-
-    @DeleteMapping("/{comment-id}")
-    @Operation(summary = "Delete announcement comment by comment id")
-    public ResponseEntity<ApiResponse<Void>> deleteAnnouncementCommentByCommentId(@PathVariable("comment-id") UUID commentId)
-    {
-        commentAnnouncementService.deleteAnnouncementCommentByCommentId(commentId);
-        ApiResponse<Void>  response= ApiResponse.<Void>builder()
-                .success(true)
-                .message("Delete announcement comment by comment id successfully")
-                .status(HttpStatus.OK)
-                .timestamp(LocalDateTime.now())
-                .build();
-        return ResponseEntity.ok(response);
-    }
-
-
 
     @PutMapping("/{comment-id}")
-    @Operation(summary = "Update announcement comment by comment id")
-    public ResponseEntity<ApiResponse<CommentAnnouncementResponse>> UpdateAnnouncementCommentByCommentId(
-            @PathVariable("comment-id") UUID commentId, @Valid @RequestBody CommentAnnouncementRequest commentAnnouncementRequest)
-    {
-        ApiResponse<CommentAnnouncementResponse>  response= ApiResponse.<CommentAnnouncementResponse>builder()
+    public ResponseEntity<ApiResponse<CommentAnnouncementResponse>> updateComment(
+            @PathVariable("comment-id") UUID commentId,
+            @Valid @RequestBody CommentAnnouncementRequest request) {
+
+        CommentAnnouncementResponse updatedComment = commentAnnouncementService.UpdateAnnouncementCommentByCommentId(commentId, request);
+
+        // Get the announcement to get the boardId (same pattern as announcements)
+        Announcement announcement = announcementService.getAnnouncementById(updatedComment.getAnnouncementId());
+
+        // Send to board-level topic (same pattern as announcements)
+        messagingTemplate.convertAndSend(
+                "/topic/board/" + announcement.getBoardId() + "/comments",
+                Map.of("type", "UPDATED", "comment", updatedComment)
+        );
+
+        ApiResponse<CommentAnnouncementResponse> response = ApiResponse.<CommentAnnouncementResponse>builder()
                 .success(true)
-                .message("Update announcement comment by comment id successfully")
-                .payload(commentAnnouncementService.UpdateAnnouncementCommentByCommentId(commentId,commentAnnouncementRequest))
+                .message("Updated comment successfully")
+                .payload(updatedComment)
                 .status(HttpStatus.OK)
                 .timestamp(LocalDateTime.now())
                 .build();
+
         return ResponseEntity.ok(response);
     }
 
+    @DeleteMapping("/{comment-id}")
+    public ResponseEntity<ApiResponse<Void>> deleteComment(@PathVariable("comment-id") UUID commentId) {
+        // First get the comment to get announcementId before deletion
+        CommentAnnouncementResponse commentToDelete = commentAnnouncementService.getCommentByCommentId(commentId);
 
+        // Get the announcement to get the boardId (same pattern as announcements)
+        Announcement announcement = announcementService.getAnnouncementById(commentToDelete.getAnnouncementId());
 
+        commentAnnouncementService.deleteAnnouncementCommentByCommentId(commentId);
+
+        // Send to board-level topic (same pattern as announcements)
+        messagingTemplate.convertAndSend(
+                "/topic/board/" + announcement.getBoardId() + "/comments",
+                Map.of("type", "DELETED", "commentId", commentId, "announcementId", commentToDelete.getAnnouncementId())
+        );
+
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .success(true)
+                .message("Deleted comment successfully")
+                .status(HttpStatus.OK)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
 }
