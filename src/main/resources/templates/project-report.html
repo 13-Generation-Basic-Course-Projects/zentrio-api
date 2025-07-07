@@ -344,48 +344,56 @@
 </div>
 
 <!-- Page 6 - Monthly Task Information -->
-<div class="page" style="background-color: white; margin-top: 45px;">
-    <div class="container">
-        <div style="background-color: #59BAD5; width: 199px; height: 40px; border-top-right-radius: 12px; border-bottom-left-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 24px; color: white; margin-bottom: 40px;">
-            <span style="font-weight: bold; padding-left: 54px;">Reports</span>
+<div style="width: 595px; height: 842px; background-color: white; display: flex; flex-direction: column; justify-content: space-between;">
+    <p style="background-color: #59BAD5; width: 199px; height: 40px; border-top-right-radius: 12px; border-bottom-left-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 24px; color: white;">
+        <span style="font-weight: bold;">Reports</span>
+    </p>
+    <div style="width: 100%; height: 100%; display: flex; flex-direction: column; padding-top: 10%;">
+        <div style="width: 100%; display: flex; justify-content: center;">
+            <div style="height: 100%; display: flex; flex-direction: column; width: 85%;">
+                <p>
+                    VIII.&nbsp;&nbsp;Monthly Task information
+                </p>
+                <div>
+                    <div>
+                        <div style="padding-top: 5%;">
+                            <div style="border: 1px solid black; border-radius: 5px;">
+                                <table style="width: 100%; font-size: 12px;">
+                                    <thead style="color: white; background-color: #59BAD5; font-size: 11px;">
+                                    <tr style="height: 32px; border-bottom: 1px solid black;">
+                                        <td style="padding-left: 16px; border-right: 1px solid black;">Month</td>
+                                        <td style="padding-left: 16px; border-right: 1px solid black;">Task</td>
+                                        <td style="padding-left: 16px; border-right: 1px solid black;">Subtask</td>
+                                        <td style="padding-left: 16px; border-right: 1px solid black;">Completed</td>
+                                        <td style="padding-left: 16px;">Version</td>
+                                    </tr>
+                                    </thead><tbody style="background-color: white;">
+                                <tr th:each="summary : ${monthlySummaries}" style="height: 32px; border-bottom: 1px solid black;">
+                                    <td style="padding-left: 16px; border-right: 1px solid black;" th:text="${summary.month}">Month</td>
+                                    <td style="padding-left: 16px; border-right: 1px solid black;" th:text="${summary.taskCount}">0</td>
+                                    <td style="padding-left: 16px; border-right: 1px solid black;" th:text="${summary.subTaskCount}">0</td>
+                                    <td style="padding-left: 16px; border-right: 1px solid black;" th:text="${summary.completionRate}">0%</td>
+                                    <td style="padding-left: 16px;" th:text="${summary.version}">v1</td>
+                                </tr>
+
+                                <!-- Total row -->
+                                <tr style="height: 32px;">
+                                    <td style="padding-left: 16px; border-right: 1px solid black;">Total</td>
+                                    <td style="padding-left: 16px; border-right: 1px solid black;" th:text="${totalTaskCount}">0</td>
+                                    <td style="padding-left: 16px; border-right: 1px solid black;" th:text="${totalSubTaskCount}">0</td>
+                                    <td style="padding-left: 16px; border-right: 1px solid black;" th:text="${avgCompletionRate}">0%</td>
+                                    <td style="padding-left: 16px;" th:text="${version}">v1</td>
+                                </tr>
+                                </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <h3 class="section-title">VIII. Monthly Task Information</h3>
-
-
-        <div class="table-container" style="flex-grow: 1; overflow-y: auto;">
-            <table style="font-size: 11px;">
-                <thead class="header-section">
-                <tr>
-                    <th>Month</th>
-                    <th>Task</th>
-                    <th>Subtask</th>
-                    <th>Completed</th>
-                    <th>Version</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr><td>January</td><td>4</td><td>6</td><td>72%</td><td>v1</td></tr>
-                <tr><td>February</td><td>5</td><td>8</td><td>78%</td><td>v1</td></tr>
-                <tr><td>March</td><td>6</td><td>9</td><td>80%</td><td>v1</td></tr>
-                <tr><td>April</td><td>7</td><td>11</td><td>83%</td><td>v1</td></tr>
-                <tr><td>May</td><td>8</td><td>13</td><td>85%</td><td>v1</td></tr>
-                <tr><td>June</td><td>9</td><td>14</td><td>88%</td><td>v1</td></tr>
-                <tr><td>July</td><td>10</td><td>16</td><td>90%</td><td>v1</td></tr>
-                <tr><td>August</td><td>9</td><td>15</td><td>89%</td><td>v1</td></tr>
-                <tr><td>September</td><td>8</td><td>13</td><td>87%</td><td>v1</td></tr>
-                <tr><td>October</td><td>7</td><td>12</td><td>86%</td><td>v1</td></tr>
-                <tr><td>November</td><td>6</td><td>10</td><td>84%</td><td>v1</td></tr>
-                <tr><td>December</td><td>5</td><td>9</td><td>82%</td><td>v1</td></tr>
-                <tr style="font-weight: bold; background-color: #f0f9ff;">
-                    <td>Total</td><td>84</td><td>136</td><td>84% avg</td><td>v1</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="page-number">page 6</div>
     </div>
+    <p style="text-align: center; height: 4.5%; font-size: 12px;">page 4</p>
 </div>
 </body>
 </html>
