@@ -57,6 +57,17 @@ public class FileServiceImpl implements FileService {
     @Value("${minio.bucket.name}")
     private String bucketName;
 
+    @Value("${app.base-url}")
+    private String baseUrl;
+
+
+    public String generateFileUrl(String fileName) {
+        return UriComponentsBuilder
+                .fromHttpUrl(baseUrl)
+                .path("/api/v1/files/preview-file/" + fileName)
+                .toUriString();
+    }
+
 
     @SneakyThrows
     @Override
@@ -96,9 +107,7 @@ public class FileServiceImpl implements FileService {
         String profileImage= extractFileNameFromUrl(appUser.getProfileImage());
         deleteFileByName(profileImage);
 
-        String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/api/v1/files/preview-file/" + fileName)
-                .toUriString();
+        String fileUrl = generateFileUrl(fileName);
 
         appUserRepository.profileImage(fileUrl, userId());
         return FileMetadata.builder()
@@ -163,10 +172,7 @@ public class FileServiceImpl implements FileService {
                     .contentType(file.getContentType())
                     .build());
 
-            String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path("/api/v1/files/preview-file/")
-                    .path(uniqueFileName)
-                    .toUriString();
+            String fileUrl = generateFileUrl(uniqueFileName);
 
             FileMetadata metadata = FileMetadata.builder()
                     .fileName(uniqueFileName)
