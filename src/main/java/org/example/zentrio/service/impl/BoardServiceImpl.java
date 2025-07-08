@@ -363,9 +363,9 @@ public class BoardServiceImpl implements BoardService {
         if (existingMemberId != null) {
             log.info("User {} is already a member of board {}, redirecting to board page", userId, boardId);
             return String.format(
-                    "https://kshrd.zentrio.pro/otherworkspace/%s/board/%s",
-                    email,
-                    boardId
+                    "https://kshrd.zentrio.pro/otherworkspace/%s/board?email=%s",
+                    boardId,
+                    email
             );
         }
 
@@ -378,9 +378,9 @@ public class BoardServiceImpl implements BoardService {
         // Note: The URL shown here is just an example; the real URL
         // should be dynamically obtained from the frontend.
         return String.format(
-                "https://kshrd.zentrio.pro/dashboard/otherworkspace/%s/board/%s",
-                email,
-                boardId
+                "https://kshrd.zentrio.pro/dashboard/otherworkspace/%s/board?email=%s",
+                boardId,
+                email
         );
     }
 
