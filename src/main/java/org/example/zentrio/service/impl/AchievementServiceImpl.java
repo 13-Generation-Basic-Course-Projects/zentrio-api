@@ -64,17 +64,22 @@ public class AchievementServiceImpl implements AchievementService {
     }
 
     @Override
-    public AchievementResponse getAchievementByUserId(UUID userId) {
-        List<BoardSummary> ownedBoards = achievementRepository.getOwnBoards(userId);
-        List<BoardSummary> joinedBoards = achievementRepository.getJoinBoard(userId);
+    public AchievementFullResponse getAchievementByUserId(UUID userId) {
         AppUserResponse user = appUserRepository.getUserByUserId(userId);
-        return new AchievementResponse(user, ownedBoards, joinedBoards);
+        if (user == null) {
+            throw new NotFoundException("User not found");
+        }
+
+        return buildAchievementResponse(userId);
     }
 
     @Override
     public AchievementFullResponse getMyAchievement() {
         UUID userId = ((AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+        return buildAchievementResponse(userId);
+    }
 
+    private AchievementFullResponse buildAchievementResponse(UUID userId) {
         Set<Board> boards = boardRepository.getAllBoardsForCurrentUser(userId);
         List<BoardAchievementDTO> boardSummaries = new ArrayList<>();
 
@@ -120,9 +125,5 @@ public class AchievementServiceImpl implements AchievementService {
                 overallRate
         );
     }
-
-
-
-
 
 }

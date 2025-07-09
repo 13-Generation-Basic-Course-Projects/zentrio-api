@@ -17,7 +17,7 @@ public interface AchievementService {
 
     void deleteAchievement(UUID achievementId);
 
-    AchievementResponse getAchievementByUserId(UUID userId);
+    AchievementFullResponse getAchievementByUserId(UUID userId);
 
     AchievementFullResponse getMyAchievement();
 }
