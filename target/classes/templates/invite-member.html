@@ -1,63 +1,118 @@
+
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Invitation</title>
+  <!-- Add Google Fonts Poppins -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* Improved styles for a better visual experience */
+    /* Modern, clean email template styles */
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: #f0f4f8;
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       margin: 0;
       padding: 0;
       line-height: 1.6;
       color: #333333;
+      min-height: 100vh;
     }
 
     .email-container {
-      max-width: 600px;
+      max-width: 500px;
       margin: 40px auto;
       background-color: #ffffff;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
       overflow: hidden;
-    }
-
-    .email-header {
-      background: linear-gradient(135deg, #4361ee 0%, #3a56dd 50%, #2a46cd 100%);
-      padding: 30px 0;
-      text-align: center;
       position: relative;
     }
 
-    .email-header:after {
-      content: "";
-      position: absolute;
-      bottom: -10px;
-      left: 0;
-      right: 0;
-      height: 10px;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.05), transparent);
+    .logo-section {
+      text-align: center;
+      padding: 30px 0 20px 0;
+      background-color: #ffffff;
     }
 
-    .email-header h1 {
+    .logo {
+      max-width: 280px;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+
+
+    .header-section {
+      height: 330px;
+      background: linear-gradient(to bottom, #459dbd 0%, #a1d4e7 100%);
+      padding: 40px 30px;
+      text-align: center;
+      position: relative;
+      margin-bottom: 20px;
+      border-radius: 16px;
+      /*overflow: hidden;*/
+    }
+
+    .header-section::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+      animation: float 20s infinite linear;
+    }
+
+    @keyframes float {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    .header-title {
       color: #ffffff;
-      margin: 0;
-      font-size: 26px;
+      font-size: 24px;
       font-weight: 700;
-      letter-spacing: 0.5px;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      margin: 0 0 8px 0;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: relative;
+      z-index: 2;
+    }
+
+
+    .illustration {
+      width: 100%;
+      max-width: 420px;
+      height: 320px;
+      margin: 20px auto 0 auto;
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .illustration img {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
+      padding: 10px;
     }
 
     .email-body {
-      padding: 45px 35px;
+      padding: 40px 35px;
+      text-align: center;
     }
 
     .greeting {
-      font-size: 20px;
-      margin-bottom: 24px;
-      color: #1e293b;
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: #59BAD5;
       font-weight: 600;
     }
 
@@ -65,8 +120,10 @@
       font-size: 16px;
       line-height: 1.7;
       margin-bottom: 32px;
-      color: #475569;
+      color: #4a5568;
+      text-align: left;
     }
+
 
     .invitation-container {
       text-align: center;
@@ -75,185 +132,315 @@
 
     .button {
       display: inline-block;
-      background: linear-gradient(145deg, #4361ee 0%, #3a56dd 100%);
+      background: linear-gradient(to right, #459dbd, #59BAD5);
       color: #ffffff !important;
       font-size: 16px;
       font-weight: 600;
       text-decoration: none;
-      padding: 16px 38px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+      padding: 16px 40px;
+      border-radius: 50px;
+      box-shadow: 0 8px 25px rgba(89, 186, 213, 0.3);
       transition: all 0.3s ease;
       letter-spacing: 0.5px;
       position: relative;
       overflow: hidden;
+      text-transform: capitalize;
     }
 
-    .button:before {
-      content: "";
+    .button::before {
+      content: '';
       position: absolute;
       top: 0;
-      left: 0;
+      left: -100%;
       width: 100%;
       height: 100%;
-      background: linear-gradient(to bottom, rgba(255,255,255,0.1), transparent);
-      opacity: 0;
-      transition: opacity 0.3s;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .button:hover::before {
+      left: 100%;
     }
 
     .button:hover {
-      box-shadow: 0 6px 16px rgba(67, 97, 238, 0.5);
-      transform: translateY(-2px);
+      box-shadow: 0 12px 35px rgba(89, 186, 213, 0.4);
+      transform: translateY(-3px);
     }
 
-    .button:hover:before {
-      opacity: 1;
-    }
-
-    .note {
-      font-size: 14px;
-      color: #64748b;
-      text-align: center;
-      margin: 32px 0;
-      padding: 0 10px;
-      line-height: 1.7;
-    }
 
     .note strong {
-      color: #334155;
+      color: #2d3748;
       font-weight: 600;
     }
 
+
     .help-text {
-      background-color: #f1f5f9;
-      border-radius: 12px;
-      padding: 22px;
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+      border-radius: 16px;
+      padding: 25px;
       margin: 30px 0;
       font-size: 14px;
-      color: #475569;
+      color: #4a5568;
       line-height: 1.7;
       border: 1px solid #e2e8f0;
+      text-align: center;
     }
 
     .help-text a {
-      color: #4361ee;
+      color: #59BAD5;
       text-decoration: none;
       font-weight: 600;
-      position: relative;
       transition: all 0.2s;
-    }
-
-    .help-text a:after {
-      content: "";
-      position: absolute;
-      width: 100%;
-      height: 1px;
-      bottom: -1px;
-      left: 0;
-      background-color: #4361ee;
-      transform: scaleX(0);
-      transform-origin: bottom right;
-      transition: transform 0.3s;
+      border-bottom: 1px solid transparent;
     }
 
     .help-text a:hover {
-      color: #2a46cd;
-    }
-
-    .help-text a:hover:after {
-      transform: scaleX(1);
-      transform-origin: bottom left;
-    }
-
-    .divider {
-      height: 1px;
-      background: linear-gradient(to right, transparent, #e2e8f0, transparent);
-      margin: 30px 0;
+      color: #459DBD;
+      border-bottom-color: #459DBD;
     }
 
     .email-footer {
-      background-color: #f8fafc;
+      background: linear-gradient(to top, #459dbd 0%, #a1d4e7 100%);
       padding: 30px;
       text-align: center;
       font-size: 12px;
-      color: #94a3b8;
-      border-top: 1px solid #e2e8f0;
+      color: #a0aec0;
     }
 
     .email-footer p {
-      margin: 5px 0;
+      margin: 8px 0;
       line-height: 1.6;
+      color: white;
     }
 
     .email-footer a {
-      color: #64748b;
+      color: white;
       text-decoration: none;
       font-weight: 500;
       transition: color 0.2s;
     }
 
-    .email-footer a:hover {
-      color: #4361ee;
+    .social-links {
+      margin: 15px 0;
     }
 
-    @media only screen and (max-width: 480px) {
+    .social-links a {
+      display: inline-block;
+      width: 32px;
+      height: 32px;
+      background: #4a5568;
+      border-radius: 50%;
+      margin: 0 8px;
+      line-height: 32px;
+      text-align: center;
+      color: white;
+      transition: all 0.3s;
+    }
+
+    /* Tablet styles */
+    @media only screen and (max-width: 768px) {
       .email-container {
-        margin: 20px 16px;
-        border-radius: 12px;
+        margin: 30px 20px;
+        border-radius: 20px;
+      }
+
+      .header-section {
+        height: 280px;
+        padding: 30px 25px;
+      }
+
+      .illustration {
+        max-width: 350px;
+        height: 200px;
       }
 
       .email-body {
-        padding: 30px 24px;
+        padding: 35px 30px;
+      }
+    }
+
+    /* Mobile phone styles */
+    @media only screen and (max-width: 480px) {
+      .email-container {
+        margin: 15px 10px;
+        border-radius: 16px;
+        max-width: calc(100vw - 20px);
       }
 
-      .email-header {
-        padding: 24px 0;
+      .logo-section {
+        padding: 20px 0 15px 0;
       }
 
-      .email-header h1 {
-        font-size: 22px;
+      .logo {
+        max-width: 200px;
       }
 
-      .button {
-        padding: 14px 28px;
-        font-size: 15px;
-        width: 80%;
+      .header-section {
+        height: 140px;
+        padding: 20px 15px;
+        margin-bottom: 15px;
+        border-radius: 12px;
+      }
+
+      .header-title {
+        font-size: 18px;
+        margin: 0 0 5px 0;
+        color: white;
+      }
+
+      .illustration {
+        width: 100%;
+        max-width: 280px;
+        height: 240px;
+        margin: 10px auto 0 auto;
+      }
+
+      .illustration img {
+        padding: 5px;
+      }
+
+      .email-body {
+        padding: 25px 20px;
       }
 
       .greeting {
         font-size: 18px;
+        margin-bottom: 15px;
+      }
+
+      .message {
+        font-size: 14px;
+        margin-bottom: 25px;
+        text-align: center;
+      }
+
+      .invitation-container {
+        margin: 30px 0;
+      }
+
+      .button {
+        padding: 12px 30px;
+        font-size: 14px;
+        width: calc(100% - 40px);
+        max-width: 250px;
+        display: block;
+        margin: 0 auto;
+      }
+
+      .help-text {
+        padding: 20px 15px;
+        margin: 25px 0;
+        font-size: 13px;
+      }
+
+      .email-footer {
+        padding: 25px 20px;
+        font-size: 11px;
+      }
+
+      .social-links a {
+        width: 28px;
+        height: 28px;
+        line-height: 28px;
+        margin: 0 6px;
+        font-size: 12px;
+      }
+    }
+
+    /* Extra small phones */
+    @media only screen and (max-width: 360px) {
+      .email-container {
+        margin: 10px 8px;
+        max-width: calc(100vw - 16px);
+      }
+
+      .header-section {
+        height: 200px;
+        padding: 15px 10px;
+      }
+
+      .header-title {
+        font-size: 16px;
+      }
+
+      .illustration {
+        max-width: 150px;
+        height: 120px;
+      }
+
+      .email-body {
+        padding: 20px 15px;
+      }
+
+      .greeting {
+        font-size: 16px;
+      }
+
+      .message {
+        font-size: 13px;
+        color: white;
+      }
+
+      .button {
+        padding: 10px 25px;
+        font-size: 13px;
+        width: calc(100% - 30px);
+        color: white;
+      }
+
+
+      .help-text {
+        padding: 15px 12px;
+        font-size: 12px;
       }
     }
   </style>
 </head>
 <body>
 <div class="email-container">
-  <div class="email-header">
-    <h1 th:text="${title}">You're Invited!</h1>
+  <!-- Logo Section -->
+  <div class="logo-section">
+    <img src="https://i.imgur.com/bP5QI3y.png" alt="Logo" class="logo">
   </div>
 
+  <!-- Header Section -->
+  <div class="header-section">
+    <h1 class="header-title" th:text="${title}">Invitation from</h1>
+    <p class="header-title">Project Manager</p>
+
+    <!-- Simple CSS Illustration -->
+    <div class="illustration">
+      <img src="https://imgur.com/MixHo9F.png" alt="Project Collaboration Illustration">
+    </div>
+  </div>
+
+  <!-- Email Body -->
   <div class="email-body">
     <p class="greeting">Hello there,</p>
 
-    <p class="message" th:text="${message}">We would like to invite you to join our platform. Please click the button below to accept the invitation.</p>
-
-    <div class="invitation-container">
-      <a class="button " th:href="${inviteLink} " style="color: #ffffff">Accept Invitation</a>
+    <div class="message">
+      <p>You've been invited to join a project board. Click the button below to accept the invitation.</p>
     </div>
 
-    <div class="divider"></div>
+    <!-- Invitation Button -->
+    <div class="invitation-container">
+      <a class="button" th:href="${inviteLink}" style="color: #ffffff !important; text-transform: capitalize;">Accept invitation</a>
+    </div>
 
-    <p class="note">
-      This invitation will expire in <strong>7 days</strong> for security purposes.<br>
-      If you did not expect this invitation, please ignore this email.
-    </p>
-
+    <!-- Help Text -->
     <div class="help-text">
-      If you're having trouble, please contact our support team at <a href="mailto:zentriokshrd@company.com">zentriokshrd@company.com</a> or visit our <a href="https://zentriokshrd.com/help">Help Center</a>.
+      <p><strong>Need help?</strong></p>
+      <p>Contact our support team at <a href="mailto:zentriokshrd@company.com">zentriokshrd@company.com</a> or visit our <a href="https://zentriokshrd.com/help">Help Center</a>.</p>
     </div>
   </div>
 
+  <!-- Footer -->
   <div class="email-footer">
+    <div class="social-links">
+      <a href="#">f</a>
+      <a href="#">t</a>
+      <a href="#">in</a>
+    </div>
     <p>&copy; 2025 Zentrio. All rights reserved.</p>
     <p>
       <a href="https://zentriokshrd.com/privacy">Privacy Policy</a> &bull;

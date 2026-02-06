@@ -125,7 +125,7 @@ public class BoardController {
     }
 
     @Operation(summary = "Upload cover by board ID", description = "Upload board cover by specific board ID")
-    @PostMapping(value = "/{board-id}/cover/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/{board-id}/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<FileMetadata>> uploadCoverByBoardId(
             @PathVariable("board-id") UUID boardId,
             @RequestParam("file") MultipartFile file) {
@@ -317,5 +317,23 @@ public class BoardController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
 
     }
+
+
+    @Operation(summary = "Leave a board by ID",description = "Leaving a board with a board ID and user ID")
+    @DeleteMapping("/{board-id}")
+    public ResponseEntity<?> leaveBoardByBoardIdAndUserId(
+            @PathVariable("board-id") UUID boardId) {
+        boardService.leaveBoard(boardId);
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .success(true)
+                .message("Leave a board by ID and user ID successfully")
+                .status(HttpStatus.OK)
+                .payload(null)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+
 
 }

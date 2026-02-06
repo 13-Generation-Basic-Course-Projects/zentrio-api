@@ -10,6 +10,7 @@ import org.example.zentrio.dto.response.AppUserResponse;
 import org.example.zentrio.dto.response.TokenResponse;
 import org.example.zentrio.enums.Verification;
 import org.example.zentrio.service.AuthService;
+import org.example.zentrio.service.RefreshTokenService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("api/v1/auths")
@@ -25,6 +28,7 @@ import java.time.LocalDateTime;
 public class AuthController {
 
     private final AuthService authService;
+    private final RefreshTokenService refreshTokenService;
 
     @Operation(summary = "Register a user", description = "Register user with credential")
     @PostMapping("/register")
@@ -105,6 +109,34 @@ public class AuthController {
                 .timestamp(LocalDateTime.now())
                 .build();
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
+    }
+
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest request) {
+        System.out.println("Refresh token: " + request.getRefreshToken());
+        ResponseEntity<?> serviceResponse = refreshTokenService.refreshToken(request);
+        if (!serviceResponse.getStatusCode().is2xxSuccessful()) {
+            return ResponseEntity.status(serviceResponse.getStatusCode()).body(
+                    ApiResponse.builder()
+                            .success(false)
+                            .message(Objects.requireNonNull(serviceResponse.getBody()).toString())
+                            .status((HttpStatus) serviceResponse.getStatusCode())
+                            .payload(null)
+                            .timestamp(LocalDateTime.now())
+                            .build()
+            );
+        }
+        System.out.println(serviceResponse.getBody());
+        return ResponseEntity.ok(
+                ApiResponse.builder()
+                        .success(true)
+                        .message("Token refreshed successfully")
+                        .status(HttpStatus.OK)
+                        .payload(serviceResponse.getBody())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
     }
 
 

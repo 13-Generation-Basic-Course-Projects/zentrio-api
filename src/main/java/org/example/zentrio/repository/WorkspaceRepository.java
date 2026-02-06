@@ -41,6 +41,13 @@ public interface WorkspaceRepository {
 
     @Select("""
                 SELECT * FROM workspaces
+                WHERE created_by = #{userId}
+            """)
+    @ResultMap("workspaceMapper")
+    List<Workspace> getAllWorkspacesByid(UUID userId);
+
+    @Select("""
+                SELECT * FROM workspaces
                 WHERE workspace_id = #{workspaceId}
             """)
     Workspace getWorkspaceByWorkspaceId(UUID workspaceId);
@@ -144,9 +151,11 @@ public interface WorkspaceRepository {
     HashSet<OtherWorkspaceResponse> getOtherWorkspaceForUser(UUID userId);
 
 
-
-
-
+    @Select("""
+        SELECT * FROM workspaces
+        WHERE created_by = #{userId}
+    """)
+    List<Workspace> getAllWorkspacesByUserId(UUID userId);
 }
 
 

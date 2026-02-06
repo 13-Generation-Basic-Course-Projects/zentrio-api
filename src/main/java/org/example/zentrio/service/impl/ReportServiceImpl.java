@@ -7,10 +7,7 @@ import org.example.zentrio.dto.response.TaskResponse;
 import org.example.zentrio.enums.RoleName;
 import org.example.zentrio.exception.BadRequestException;
 import org.example.zentrio.exception.NotFoundException;
-import org.example.zentrio.model.AllMember;
-import org.example.zentrio.model.AllTasks;
-import org.example.zentrio.model.AppUser;
-import org.example.zentrio.model.Report;
+import org.example.zentrio.model.*;
 import org.example.zentrio.repository.MemberRepository;
 import org.example.zentrio.repository.ReportRepository;
 import org.example.zentrio.repository.TaskRepository;
@@ -125,5 +122,14 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public List<AllTasks> getTasks(UUID checklistId) {
         return reportRepository.getTasks(checklistId);
+    }
+
+    @Override
+    public List<VersionReport> getVersionReportByReportId(UUID reportId) {
+       List<VersionReport> versionReports =  reportRepository.getAllVersionReportByBoardId(reportId);
+       if (versionReports.isEmpty()){
+           throw  new NotFoundException("Report not found");
+       }
+        return versionReports;
     }
 }

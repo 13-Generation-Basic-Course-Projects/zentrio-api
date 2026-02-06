@@ -1,10 +1,9 @@
 package org.example.zentrio.repository;
 
 import org.apache.ibatis.annotations.*;
+import org.example.zentrio.dto.request.AttachmentRequest;
 import org.example.zentrio.dto.response.ChecklistResponse;
-import org.example.zentrio.model.AllMember;
-import org.example.zentrio.model.AllTasks;
-import org.example.zentrio.model.Report;
+import org.example.zentrio.model.*;
 import org.example.zentrio.utility.JsonbTypeHandler;
 import org.w3c.dom.stylesheets.LinkStyle;
 
@@ -145,4 +144,30 @@ public interface ReportRepository {
         WHERE  report_id= #{reportId}     
         """)
     void updateVersion(UUID reportId, int version);
+
+
+    @Select("""
+                INSERT INTO  reports_version(data,board_id ,version,created_at, report_id)
+                VALUES (#{report, jdbcType=OTHER, typeHandler=org.example.zentrio.utility.JsonbTypeHandler},
+                        #{boardId},
+                        #{version},
+                        #{createdAt},
+                        #{reportId})
+            """)
+    Void saveVersionReport(Map<String, Object> report , UUID boardId, int version, LocalDateTime createdAt, UUID reportId);
+
+    @Select("""
+        
+        SELECT * FROM reports_version WHERE report_id=#{reportId}
+        """)
+    @Results(id = "versionReportMapper", value = {
+            @Result (property = "reportVersionId", column = "report_version_id"),
+            @Result (property = "data", column = "data", typeHandler = org.example.zentrio.utility.JsonbTypeHandler.class),
+            @Result (property = "boardId", column = "board_id"),
+            @Result (property = "version", column = "version"),
+            @Result (property = "createdAt", column = "created_at"),
+            @Result (property = "reportId", column = "report_id"),
+    })
+
+    List<VersionReport> getAllVersionReportByBoardId(UUID reportId);
 }

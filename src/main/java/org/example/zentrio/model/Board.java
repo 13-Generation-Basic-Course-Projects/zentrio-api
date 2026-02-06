@@ -17,6 +17,7 @@ public class Board {
     private String title;
     private String description;
     private String cover;
+    private String image;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean isFavourite;

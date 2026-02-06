@@ -600,21 +600,7 @@ public class DocumentServiceImpl implements DocumentService {
         }
     }
 
-    @Override
-    public Void saveGoogleEmailDrive(String email) {
-        AppUser appUser= appUserRepository.getUserById(userId());
-        if ( appUser.getGoogleEmail()== null ) {
 
-         return  appUserRepository.saveGoogleEmailDrive(email, userId());
-        }else  {
-
-            if (!appUser.getGoogleEmail().equals(email)) {
-                throw new BadRequestException("The provided email address not right");
-            }
-
-            return null;
-        }
-    }
 
     @Override
     public List<Document> getAllDocumentsAllUser(UUID boardId) {

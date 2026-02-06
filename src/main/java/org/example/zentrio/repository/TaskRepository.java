@@ -59,6 +59,12 @@ public interface TaskRepository {
     HashSet<Task> getAllTasksByBoardIdAndGanttBarId(UUID boardId, UUID ganttBarId);
 
     @Select("""
+                SELECT * FROM tasks WHERE board_id  = #{boardId}
+            """)
+    @ResultMap("taskMapper")
+    List<Task> getAllTasksByBoard(UUID boardId);
+
+    @Select("""
                 UPDATE tasks SET
                                  title = #{request.title},
                                  description = #{request.description},
@@ -250,7 +256,8 @@ public interface TaskRepository {
             @Result(property = "creator", column = "created_by",
                     one = @One(select = "getDataOfUserCreator")),
 
-
+            @Result(property = "teamLeader", column = "task_id",
+                    one = @One(select = "getTeamLeadData")),
             @Result(property = "allChecklists", column = "task_id",
                     many = @Many(select = "org.example.zentrio.repository.ChecklistRepository.getAllDataInChecklistByTaskId")),
     })
@@ -332,4 +339,11 @@ public interface TaskRepository {
         AND task_id = #{taskId}
     """)
     UUID getLeaderIdByUserIdAndTaskId(UUID userId, UUID taskId);
+
+    @Select("""
+        SELECT *  FROM tasks
+        WHERE board_id = #{boardId}
+    """)
+    List<Task> getAllTasksByBoardId(UUID boardId);
+
 }

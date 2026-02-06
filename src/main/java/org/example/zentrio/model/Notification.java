@@ -14,11 +14,16 @@ import java.util.UUID;
 
 public class Notification {
     private UUID notificationId;
+    private String title;
     private String content;
     private String type;
     private Boolean isRead;
     private LocalDateTime createdAt;
-    private UUID taskAssignId;
+    private UUID boardId;
+    private Board board;
+    private UUID taskId;
+    private Task task;
+    private UUID checklistId;
     private UUID senderId;
     private AppUserResponse sender;
     private UUID receiverId;

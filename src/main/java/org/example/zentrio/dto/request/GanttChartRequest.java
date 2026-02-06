@@ -1,9 +1,6 @@
 package org.example.zentrio.dto.request;
 
-import jakarta.validation.constraints.FutureOrPresent;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,6 +17,7 @@ public class GanttChartRequest {
 
     @NotNull
     @NotBlank
+    @Size(min = 2, max = 100)
     private String title;
 
     @NotNull

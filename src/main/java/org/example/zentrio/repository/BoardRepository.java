@@ -33,8 +33,9 @@ public interface BoardRepository {
             @Result(property = "cover", column = "cover"),
             @Result(property = "createdAt", column = "created_at"),
             @Result(property = "updatedAt", column = "updated_at"),
+            @Result(property = "image", column = "image_url"),
             @Result(property = "createdBy", column = "workspace_id",
-            one = @One(select = "getPmByWorkspaceId")),
+                    one = @One(select = "getPmByWorkspaceId")),
             @Result(property = "isFavourite", column = "is_favourite"),
             @Result(property = "workspaceId", column = "workspace_id")
     })
@@ -47,7 +48,12 @@ public interface BoardRepository {
     @ResultMap("boardMapper")
     List<Board> getAllBoardsByWorkspaceId(UUID workspaceId, Integer limit, Integer offset);
 
-
+    @Select("""
+                SELECT * FROM boards WHERE workspace_id = #{workspaceId}
+          
+            """)
+    @ResultMap("boardMapper")
+    List<Board> getAllDataBoardsByWorkspaceId(UUID workspaceId);
     @Select("""
                 UPDATE boards SET title = #{request.title},
                                   description = #{request.description},
@@ -65,7 +71,6 @@ public interface BoardRepository {
                 WHERE board_id = #{boardId}
                 AND workspace_id = #{workspaceId}
             """)
-
     void deleteBoardByBoardId(UUID boardId, UUID workspaceId);
 
 
@@ -96,43 +101,42 @@ public interface BoardRepository {
     @Results(id = "boardWithMembersMap", value = {
             @Result(property = "userId", column = "user_id"),
             @Result(property = "username", column = "username"),
-            @Result(property = "profileImage",column = "profile_image"),
+            @Result(property = "profileImage", column = "profile_image"),
             @Result(property = "email", column = "email"),
             @Result(property = "tasks", column = "{userId=user_id, boardId=board_id}",
-            many = @Many(select = "getAllTaskNames")),
+                    many = @Many(select = "getAllTaskNames")),
             @Result(property = "roles", column = "{userId=user_id, boardId=board_id}",
                     many = @Many(select = "org.example.zentrio.repository.RoleRepository.getRolesNameByUserId")),
-
     })
     HashSet<MemberResponse> getBoardByBoardIdWithMember(UUID boardId);
 
 
     @Select("""
-        
-        SELECT DISTINCT ta.title
-        
-        FROM tasks ta
-                 JOIN boards b ON b.board_id = ta.board_id
-                 JOIN members m ON m.board_id = ta.board_id AND m.user_id = #{userId}
-            JOIN roles r ON m.role_id = r.role_id
-        
-            -- Left joins for filtering based on role
-            LEFT JOIN task_assignments tsa ON ta.task_id = tsa.task_id
-            LEFT JOIN checklists ch ON ch.task_id = ta.task_id
-            LEFT JOIN checklist_assignments ca ON ch.checklist_id = ca.checklist_id
-        
-        WHERE ta.board_id = #{boardId}
-          AND (
-        -- PM gets all tasks
-            r.role_name = 'ROLE_MANAGER'
-        
-        -- Team Lead gets tasks where he is the leader (assigned_by)
-           OR (r.role_name = 'ROLE_LEADER' AND tsa.assigned_to = m.member_id)
-        
-        -- Member gets tasks via checklist assignment
-           OR (r.role_name = 'ROLE_MEMBER' AND ca.member_id = m.member_id)
-            )
-    """)
+            
+                SELECT DISTINCT ta.title
+            
+                FROM tasks ta
+                         JOIN boards b ON b.board_id = ta.board_id
+                         JOIN members m ON m.board_id = ta.board_id AND m.user_id = #{userId}
+                    JOIN roles r ON m.role_id = r.role_id
+            
+                    -- Left joins for filtering based on role
+                    LEFT JOIN task_assignments tsa ON ta.task_id = tsa.task_id
+                    LEFT JOIN checklists ch ON ch.task_id = ta.task_id
+                    LEFT JOIN checklist_assignments ca ON ch.checklist_id = ca.checklist_id
+            
+                WHERE ta.board_id = #{boardId}
+                  AND (
+                -- PM gets all tasks
+                    r.role_name = 'ROLE_MANAGER'
+            
+                -- Team Lead gets tasks where he is the leader (assigned_by)
+                   OR (r.role_name = 'ROLE_LEADER' AND tsa.assigned_to = m.member_id)
+            
+                -- Member gets tasks via checklist assignment
+                   OR (r.role_name = 'ROLE_MEMBER' AND ca.member_id = m.member_id)
+                    )
+            """)
     HashSet<String> getAllTaskNames(UUID userId, UUID boardId);
 
 
@@ -206,24 +210,24 @@ public interface BoardRepository {
     HashSet<Board> getAllBoardsForCurrentUser(UUID userId);
 
     @Select("""
-        SELECT * FROM boards
-    """)
+                SELECT * FROM boards
+            """)
     @ResultMap("boardMapper")
     HashSet<Board> getAllBoards();
 
     @Select("""
-        
-            SELECT EXISTS(
-            SELECT  1 FROM  members m
-                      where m.user_id= #{assigneeId}
-                      AND m.board_id= #{boardId}
-        )
-        """)
+            
+                SELECT EXISTS(
+                SELECT  1 FROM  members m
+                          where m.user_id= #{assigneeId}
+                          AND m.board_id= #{boardId}
+            )
+            """)
     Boolean getExistUserInBoard(UUID assigneeId, UUID boardId);
 
     @Select("""
-        SELECT * FROM boards WHERE board_id= #{boardId}
-        """)
+            SELECT * FROM boards WHERE board_id= #{boardId}
+            """)
     @Results(id = "boarAllDataMapper", value = {
             @Result(property = "boardId", column = "board_id"),
             @Result(property = "title", column = "title"),
@@ -234,35 +238,34 @@ public interface BoardRepository {
             @Result(property = "isFavourite", column = "is_favourite"),
             @Result(property = "workspaceId", column = "workspace_id"),
             @Result(property = "allTasks", column = "board_id",
-            many = @Many(select = "org.example.zentrio.repository.TaskRepository.getAllDataInTaskByBoardId"))
+                    many = @Many(select = "org.example.zentrio.repository.TaskRepository.getAllDataInTaskByBoardId"))
     })
     BoardResponse getAllDataInBoard(UUID boardId);
 
     @Select("""
-        DELETE FROM members m
-        WHERE m.board_id = #{boardId}
-        AND m.user_id = #{userId}
-    """)
+                DELETE FROM members m
+                WHERE m.board_id = #{boardId}
+                AND m.user_id = #{userId}
+            """)
     void deletedMember(UUID boardId, UUID userId);
 
 
     @Select("""
-        SELECT b.*
-        FROM boards b
-        INNER JOIN workspaces w ON b.workspace_id = w.workspace_id
-        WHERE b.is_favourite = TRUE
-        AND w.created_by = #{userId}
-    """)
+                SELECT b.*
+                FROM boards b
+                INNER JOIN workspaces w ON b.workspace_id = w.workspace_id
+                WHERE b.is_favourite = TRUE
+                AND w.created_by = #{userId}
+            """)
     @ResultMap("boardMapper")
     HashSet<Board> getFavouriteBoardsByUserId(UUID userId);
 
 
     @Select("""
-             
-                   SELECT u.profile_image AS image , u.username AS name, u.user_id, u.gender FROM users u
-                        inner join workspaces wk on u.user_id = wk.created_by
-                WHERE wk.workspace_id= #{workspaceId}
-        """)
+                       SELECT u.profile_image AS image , u.username AS name, u.user_id, u.gender FROM users u
+                            inner join workspaces wk on u.user_id = wk.created_by
+                    WHERE wk.workspace_id= #{workspaceId}
+            """)
     @Results(id = "userWorkspaceMapper", value = {
             @Result(property = "userId", column = "user_id"),
             @Result(property = "gender", column = "gender"),
@@ -270,4 +273,28 @@ public interface BoardRepository {
             @Result(property = "username", column = "name"),
     })
     MemberResponseData getPmByWorkspaceId(UUID workspaceId);
+
+
+    @Select("""
+                SELECT COUNT(*) > 0
+                FROM members
+                WHERE user_id = #{userId}
+                AND board_id = #{boardId}
+            """)
+    boolean existsUserInBoard(UUID userId, UUID boardId);
+
+
+    @Select("""
+                DELETE FROM members m
+                WHERE m.board_id = #{boardId}
+                AND m.user_id = #{userId}
+            """)
+    void leaveBoard(UUID boardId, UUID userId);
+
+
+
+    @Select("""
+        SELECT * FROM boards WHERE workspace_id = #{workspaceId}
+    """)
+    List<Board> getAllBoardByWorkspaceId(UUID workspaceId);
 }

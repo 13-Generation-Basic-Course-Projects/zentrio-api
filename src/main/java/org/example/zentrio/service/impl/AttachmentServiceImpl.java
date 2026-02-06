@@ -101,11 +101,11 @@ public class AttachmentServiceImpl implements AttachmentService {
             throw new ForbiddenException("You are not authorized to add attachments to this checklist.");
         }
 
-        // Optional: if you want to limit only one attachment per checklist
-        int existingAttachments = attachmentRepository.countByChecklistId(checklistId);
-        if (existingAttachments > 0) {
-            throw new BadRequestException("Checklist already has attachments.");
-        }
+//        // Optional: if you want to limit only one attachment per checklist
+//        int existingAttachments = attachmentRepository.countByChecklistId(checklistId);
+//        if (existingAttachments > 0) {
+//            throw new BadRequestException("Checklist already has attachments.");
+//        }
 
         // Validate the attachment details
         validateAttachmentDetails(attachmentRequest);

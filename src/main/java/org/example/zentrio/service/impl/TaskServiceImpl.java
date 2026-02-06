@@ -1,8 +1,10 @@
 package org.example.zentrio.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.example.zentrio.dto.request.TaskRequest;
 import org.example.zentrio.dto.response.TaskResponse;
+import org.example.zentrio.enums.NotificationTypes;
 import org.example.zentrio.enums.RoleName;
 import org.example.zentrio.enums.Stage;
 import org.example.zentrio.enums.Status;
@@ -22,6 +24,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
+import static org.example.zentrio.enums.Status.COMPLETED;
+import static org.example.zentrio.enums.Status.OVERDUE;
+
 @Service
 @RequiredArgsConstructor
 public class TaskServiceImpl implements TaskService {
@@ -34,8 +39,10 @@ public class TaskServiceImpl implements TaskService {
     private final ChecklistRepository checklistRepository;
     private final MemberRepository memberRepository;
     private final GanttChartService ganttChartService;
+    private final NotificationService notificationService;
 
 
+    // need to validate the task with gantt bars
     private void validateTaskTimeWithGanttBar(TaskRequest taskRequest, GanttBar ganttBar) {
         LocalDateTime now = LocalDateTime.now();
 
@@ -176,7 +183,12 @@ public class TaskServiceImpl implements TaskService {
         if (tasks.isEmpty()) {
             throw new NotFoundException("Task is empty nothing to updated");
         }
-        return tasks;
+        for (Task task : tasks) {
+            if (task.getFinishedAt().isBefore(LocalDateTime.now()) && !task.getStatus().equals(COMPLETED.toString())) {
+                taskRepository.updateStatusOfTaskById(task.getTaskId(), OVERDUE.toString());
+            }
+        }
+         return  taskRepository.getAllTasksByBoardIdAndGanttBarId(boardId, ganttBarId);
 
     }
 
@@ -261,12 +273,9 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public void assignLeaderToTask(UUID taskId, UUID assigneeId) {
+    public void assignLeaderToTask(UUID taskId, UUID assigneeId) throws JsonProcessingException {
 
         Task task = getTaskById(taskId);
-
-
-        validateCurrentUserRoles(task.getBoardId());
         if (taskRepository.isAlreadyAssigned(taskId)) {
             throw new ConflictException("Task's with ID " + taskId + " is already assigned Leader");
         }
@@ -296,8 +305,16 @@ public class TaskServiceImpl implements TaskService {
         leaderId = taskRepository.getLeaderIdByUserIdAndBoardId(assigneeId, task.getBoardId());
         taskRepository.insertTaskAssignment(taskId, assignerMemberId, leaderId);
         updateProgressOfTaskById(taskId);
+        notificationService.sendPushNotificationToUser(
+                assigneeId,
+                "Task Leader Assigned",
+                "You have been assigned as a leader for task" + task.getTitle(),
+                task.getBoardId(),
+                taskId,
+                null,
+                NotificationTypes.TASK_ASSIGNED
+        );
     }
-
 
     @Override
     public void moveTask(UUID taskId, Stage stage) {
@@ -352,12 +369,16 @@ public class TaskServiceImpl implements TaskService {
                 if (!"IN_PROGRESS".equals(currentStage)) {
                     throw new BadRequestException("Task must be IN_PROGRESS to move to UNDER_REVIEW.");
                 }
+                long incompleteChecklistCountInUnderReview = checklistRepository.countIncompleteByTaskId(taskId);
+                if (incompleteChecklistCountInUnderReview > 0) {
+                    throw new BadRequestException("Cannot move to COMPLETED until all checklist items are done.");
+                }
                 break;
 
             case "COMPLETED":
                 if (!isManager) {
-                    UUID taskLeaderId = taskRepository.getLeaderIdByUserIdAndTaskId(currentUserId, taskId);
-                    if (!currentUserId.equals(taskLeaderId)) {
+                    UUID taskLeaderId = taskRepository.getLeaderIdByUserIdAndBoardId(currentUserId, boardId);
+                    if (!taskLeaderId.equals(leaderIdInMember)) {
                         throw new ForbiddenException("Only the task leader can move the task to COMPLETED.");
                     }
                 }

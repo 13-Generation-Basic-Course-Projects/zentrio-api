@@ -197,30 +197,14 @@ public class FileUploadServiceImpl implements FileUploadService {
 
     @Override
     public File renameDriveFile(String accessToken, String fileId, String newName) throws GeneralSecurityException, IOException {
-
         Drive drive = documentService.createDriveService(accessToken);
 
-        File fileMetadata;
-        try {
-            fileMetadata = drive.files().get(fileId)
-                    .setFields("id, name, webViewLink, mimeType")
-                    .execute();
-        } catch (GoogleJsonResponseException e) {
-            if (e.getStatusCode() == 404) {
-                throw new NotFoundException("Folder not found with ID: " + fileId);
-            }
-            throw e; // rethrow other unexpected Google exceptions
-        }
-
-        // If it's a folder, don't allow renaming here
-        if ("application/vnd.google-apps.folder".equals(fileMetadata.getMimeType())) {
-            throw new IllegalArgumentException("Cannot rename a folder using this method.");
-        }
-
-        // Proceed to rename the file
+        // Prepare only updatable metadata
+        File fileMetadata = new File();
+        fileMetadata.setName(newName); // ✅ Only send what you're updating
 
         File updatedFile = drive.files().update(fileId, fileMetadata)
-                .setFields("id, name, webViewLink, mimeType")
+                .setFields("id, name, webViewLink, mimeType") // ✅ What you want to *receive* back
                 .execute();
 
         return updatedFile;

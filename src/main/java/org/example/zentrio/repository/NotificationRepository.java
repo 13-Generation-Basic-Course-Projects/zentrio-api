@@ -20,7 +20,14 @@ public interface NotificationRepository {
             @Result(property = "senderId", column = "sender_id"),
             @Result(property = "sender", column = "sender_id",
                     one = @One(select = "org.example.zentrio.repository.AppUserRepository.getUserByUserId")),
-            @Result(property = "receiverId", column = "receiver_id")
+            @Result(property = "receiverId", column = "receiver_id"),
+            @Result(property = "boardId", column = "board_id"),
+            @Result(property = "board", column = "board_id",
+            one = @One(select = "org.example.zentrio.repository.BoardRepository.getBoardByBoardId")),
+            @Result(property = "taskId",column = "task_id"),
+            @Result(property = "task",column = "task_id",
+            one = @One(select = "org.example.zentrio.repository.TaskRepository.getTaskByTaskId" )),
+            @Result(property = "checklistId",column = "checklist_id")
     })
 
     @Select("""
@@ -31,18 +38,11 @@ public interface NotificationRepository {
     HashSet<Notification> getNotificationsByUserId(UUID userId);
 
     @Select("""
-                INSERT INTO notifications(notification_id, content, type, is_read, created_at, task_assign_id, sender_id, receiver_id)
-                VALUES(#{notificationId}, #{content}, #{type}, #{isRead}, #{createdAt}, #{taskAssignId}, #{senderId},#{receiverId})
+                INSERT INTO notifications(notification_id, title, content, type, is_read, created_at, board_id, task_id, checklist_id, sender_id, receiver_id)
+                VALUES(#{notificationId}, #{title}, #{content}, #{type}, #{isRead}, #{createdAt}, #{boardId},#{taskId},#{checklistId}, #{senderId}, #{receiverId})
             """)
     @ResultMap("notificationMapper")
     void insertNotification(Notification notification);
-
-    @Select("""
-        SELECT task_assign_id
-        FROM task_assignments
-        WHERE task_id = #{taskId}
-    """)
-    UUID getTaskAssignId(UUID taskId);
 
 
     @Select("""
@@ -64,4 +64,14 @@ public interface NotificationRepository {
         WHERE receiver_id = #{userId}
     """)
     void deleteAllNotifications(UUID userId);
+
+
+    @Select("""
+        SELECT * FROM notifications n
+        INNER JOIN members m ON n.receiver_id = m.user_id
+        WHERE n.receiver_id = #{userId}
+        AND m.board_id = #{boardId}
+    """)
+    @ResultMap("notificationMapper")
+    HashSet<Notification> getNotificationByUserIdAndBoardId(UUID userId, UUID boardId);
 }

@@ -169,7 +169,8 @@ CREATE TABLE comments
     content      TEXT NOT NULL,
     comment_date TIMESTAMP        DEFAULT CURRENT_TIMESTAMP,
     commented_by UUID REFERENCES members (member_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    checklist_id UUID REFERENCES checklists (checklist_id) ON DELETE CASCADE ON UPDATE CASCADE
+    checklist_id UUID REFERENCES checklists (checklist_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    announcement_id uuid references announcements(announcement_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 
@@ -212,13 +213,16 @@ CREATE TABLE achievements
 CREATE TABLE notifications
 (
     notification_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title           TEXT NOT NULL,
     content         TEXT NOT NULL,
-    type            VARCHAR(50),
-    is_read         BOOLEAN          DEFAULT FALSE,
-    created_at      TIMESTAMP        DEFAULT CURRENT_TIMESTAMP,
-    task_assign_id  UUID REFERENCES task_assignments (task_assign_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    type            VARCHAR(50), -- You can enforce allowed types later with ENUM or check constraint
+    is_read         BOOLEAN DEFAULT FALSE,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    board_id        UUID NOT NULL REFERENCES boards (board_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    task_id         UUID REFERENCES tasks (task_id) ON DELETE SET NULL ON UPDATE CASCADE,
+    checklist_id    UUID REFERENCES checklists (checklist_id) ON DELETE SET NULL ON UPDATE CASCADE,
     sender_id       UUID REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    receiver_id     UUID REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE
+    receiver_id     UUID NOT NULL REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- Create the reports table
@@ -378,7 +382,6 @@ CREATE TABLE announcement_images (
                                      announcement_images_id  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                                      image_url VARCHAR(255) NOT NULL,
                                      uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                     title VARCHAR(255) NOT NULL ,
                                      announcement_id UUID  REFERENCES announcements(announcement_id) ON DELETE CASCADE ON UPDATE CASCADE,
                                      created_by UUID REFERENCES members(member_id) ON DELETE CASCADE ON UPDATE CASCADE
                                  );
@@ -405,3 +408,23 @@ CREATE TABLE favorite_boards (
                                  UNIQUE (user_id, board_id)
 );
 
+
+CREATE TABLE refresh_tokens (
+                                id UUID PRIMARY KEY,
+                                user_id UUID REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+                                token TEXT NOT NULL,
+                                expiry_date TIMESTAMP NOT NULL,
+                                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+
+CREATE TABLE reports_version (
+                         report_version_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                         board_id UUID NOT NULL,
+                         version INTEGER,
+                         data JSONB, -- your full JSON here
+                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                         report_id UUID NOT NULL  REFERENCES  reports(report_id) ON UPDATE CASCADE ON DELETE CASCADE
+
+);
